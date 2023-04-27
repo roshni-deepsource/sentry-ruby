@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "json"
-require "base64"
-require "sentry/envelope"
+require 'json'
+require 'base64'
+require 'sentry/envelope'
 
 module Sentry
   class Transport
@@ -35,10 +35,10 @@ module Sentry
       @rate_limits = {}
       @send_client_reports = configuration.send_client_reports
 
-      if @send_client_reports
-        @discarded_events = Hash.new(0)
-        @last_client_report_sent = Time.now
-      end
+      return unless @send_client_reports
+
+      @discarded_events = Hash.new(0)
+      @last_client_report_sent = Time.now
     end
 
     def send_data(data, options = {})
@@ -59,10 +59,10 @@ module Sentry
 
       data, serialized_items = serialize_envelope(envelope)
 
-      if data
-        log_info("[Transport] Sending envelope with items [#{serialized_items.map(&:type).join(', ')}] #{envelope.event_id} to Sentry")
-        send_data(data)
-      end
+      return unless data
+
+      log_info("[Transport] Sending envelope with items [#{serialized_items.map(&:type).join(', ')}] #{envelope.event_id} to Sentry")
+      send_data(data)
     end
 
     def serialize_envelope(envelope)
@@ -91,12 +91,12 @@ module Sentry
       # check category-specific limit
       category_delay =
         case item_type
-        when "transaction"
-          @rate_limits["transaction"]
-        when "sessions"
-          @rate_limits["session"]
+        when 'transaction'
+          @rate_limits['transaction']
+        when 'sessions'
+          @rate_limits['session']
         else
-          @rate_limits["error"]
+          @rate_limits['error']
         end
 
       # check universal limit if not category limit
@@ -133,8 +133,8 @@ module Sentry
     def envelope_from_event(event)
       # Convert to hash
       event_payload = event.to_hash
-      event_id = event_payload[:event_id] || event_payload["event_id"]
-      item_type = event_payload[:type] || event_payload["type"]
+      event_id = event_payload[:event_id] || event_payload['event_id']
+      item_type = event_payload[:type] || event_payload['type']
 
       envelope_headers = {
         event_id: event_id,
@@ -217,5 +217,5 @@ module Sentry
   end
 end
 
-require "sentry/transport/dummy_transport"
-require "sentry/transport/http_transport"
+require 'sentry/transport/dummy_transport'
+require 'sentry/transport/http_transport'

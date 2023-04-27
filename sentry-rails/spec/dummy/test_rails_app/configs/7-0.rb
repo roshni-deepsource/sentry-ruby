@@ -1,5 +1,5 @@
-require "active_storage/engine"
-require "action_cable/engine"
+require 'active_storage/engine'
+require 'action_cable/engine'
 
 def run_pre_initialize_cleanup
   # Zeitwerk checks if registered loaders load paths repeatedly and raises error if that happens.

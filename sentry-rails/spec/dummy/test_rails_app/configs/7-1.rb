@@ -1,6 +1,6 @@
-require "active_storage/engine"
-require "action_cable/engine"
-require "sentry/rails/error_subscriber"
+require 'active_storage/engine'
+require 'action_cable/engine'
+require 'sentry/rails/error_subscriber'
 
 def run_pre_initialize_cleanup
   # Zeitwerk checks if registered loaders load paths repeatedly and raises error if that happens.

@@ -6,9 +6,9 @@ module DeprecationHelper
   def self.deprecate_old_breadcrumbs_configuration(logger)
     deprecated_usage =
       if logger == :sentry_logger
-        "require \"raven/breadcrumbs/logger\""
+        'require "raven/breadcrumbs/logger"'
       else
-        "Raven.configuration.rails_activesupport_breadcrumbs = true"
+        'Raven.configuration.rails_activesupport_breadcrumbs = true'
       end
     recommended_usage = "Raven.configuration.breadcrumbs_logger = :#{logger}"
 

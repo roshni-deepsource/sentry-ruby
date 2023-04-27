@@ -19,7 +19,7 @@ module Raven
       def add_breadcrumb(severity, message = nil, progname = nil)
         message = progname if message.nil? # see Ruby's Logger docs for why
         return if ignored_logger?(progname)
-        return if message.nil? || message == ""
+        return if message.nil? || message == ''
 
         # some loggers will add leading/trailing space as they (incorrectly, mind you)
         # think of logging as a shortcut to std{out,err}
@@ -27,28 +27,29 @@ module Raven
 
         last_crumb = Raven.breadcrumbs.peek
         # try to avoid dupes from logger broadcasts
-        if last_crumb.nil? || last_crumb.message != message
-          Raven.breadcrumbs.record do |crumb|
-            crumb.level = Raven::Breadcrumbs::SentryLogger::LEVELS.fetch(severity, nil)
-            crumb.category = progname || 'logger'
-            crumb.message = message
-            crumb.type =
-              if severity >= 3
-                "error"
-              else
-                crumb.level
-              end
-          end
+        return unless last_crumb.nil? || last_crumb.message != message
+
+        Raven.breadcrumbs.record do |crumb|
+          crumb.level = Raven::Breadcrumbs::SentryLogger::LEVELS.fetch(severity, nil)
+          crumb.category = progname || 'logger'
+          crumb.message = message
+          crumb.type =
+            if severity >= 3
+              'error'
+            else
+              crumb.level
+            end
         end
       end
 
       private
 
       def ignored_logger?(progname)
-        progname == "sentry" ||
+        progname == 'sentry' ||
           Raven.configuration.exclude_loggers.include?(progname)
       end
     end
+
     module OldBreadcrumbsSentryLogger
       def self.included(base)
         base.class_eval do
@@ -67,7 +68,7 @@ module Raven
 end
 
 Raven.safely_prepend(
-  "Breadcrumbs::SentryLogger",
-  :from => Raven,
-  :to => ::Logger
+  'Breadcrumbs::SentryLogger',
+  from: Raven,
+  to: ::Logger
 )

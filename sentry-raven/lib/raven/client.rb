@@ -4,7 +4,7 @@ require 'base64'
 require 'json'
 require 'zlib'
 
-require "raven/transports"
+require 'raven/transports'
 
 module Raven
   # Encodes events and sends them to the Sentry server.
@@ -26,7 +26,7 @@ module Raven
 
       event = configuration.before_send.call(event, hint) if configuration.before_send
       if event.nil?
-        configuration.logger.info "Discarded event because before_send returned nil"
+        configuration.logger.info 'Discarded event because before_send returned nil'
         return
       end
 
@@ -45,9 +45,9 @@ module Raven
 
       begin
         transport.send_event(generate_auth_header, encoded_data,
-                             :content_type => content_type)
+                             content_type: content_type)
         successful_send
-      rescue => e
+      rescue StandardError => e
         failed_send(e, event)
         return
       end
@@ -65,7 +65,7 @@ module Raven
         when 'dummy'
           Transports::Dummy.new(configuration)
         else
-          fail "Unknown transport scheme '#{configuration.scheme}'"
+          raise "Unknown transport scheme '#{configuration.scheme}'"
         end
     end
 
@@ -120,7 +120,7 @@ module Raven
         @state.failure
         configuration.logger.warn "Unable to record event with remote Sentry server (#{e.class} - #{e.message}):\n#{e.backtrace[0..10].join("\n")}"
       else
-        configuration.logger.warn "Not sending event due to previous failure(s)."
+        configuration.logger.warn 'Not sending event due to previous failure(s).'
       end
       configuration.logger.warn("Failed to submit event: #{get_log_message(event)}")
 

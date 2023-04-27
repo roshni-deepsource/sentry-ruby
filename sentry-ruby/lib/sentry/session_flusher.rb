@@ -20,6 +20,7 @@ module Sentry
 
     def flush
       return if @pending_aggregates.empty?
+
       envelope = pending_envelope
 
       Sentry.background_worker.perform do
@@ -36,18 +37,19 @@ module Sentry
       begin
         ensure_thread
       rescue ThreadError
-        log_debug("Session flusher thread creation failed")
+        log_debug('Session flusher thread creation failed')
         @exited = true
         return
       end
 
       return unless Session::AGGREGATE_STATUSES.include?(session.status)
+
       @pending_aggregates[session.aggregation_key] ||= init_aggregates(session.aggregation_key)
       @pending_aggregates[session.aggregation_key][session.status] += 1
     end
 
     def kill
-      log_debug("Killing session flusher")
+      log_debug('Killing session flusher')
 
       @exited = true
       @thread&.kill
@@ -85,6 +87,5 @@ module Sentry
         end
       end
     end
-
   end
 end

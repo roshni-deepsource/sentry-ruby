@@ -4,6 +4,6 @@ class ErrorWorker
 
   def perform
     a = 1
-    raise "Worker failed"
+    raise 'Worker failed'
   end
 end

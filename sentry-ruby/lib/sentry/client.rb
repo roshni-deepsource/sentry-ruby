@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "sentry/transport"
+require 'sentry/transport'
 
 module Sentry
   class Client
@@ -21,17 +21,16 @@ module Sentry
       @configuration = configuration
       @logger = configuration.logger
 
-      if transport_class = configuration.transport.transport_class
-        @transport = transport_class.new(configuration)
-      else
-        @transport =
-          case configuration.dsn&.scheme
-          when 'http', 'https'
-            HTTPTransport.new(configuration)
-          else
-            DummyTransport.new(configuration)
-          end
-      end
+      @transport = if (transport_class = configuration.transport.transport_class)
+                     transport_class.new(configuration)
+                   else
+                     case configuration.dsn&.scheme
+                     when 'http', 'https'
+                       HTTPTransport.new(configuration)
+                     else
+                       DummyTransport.new(configuration)
+                     end
+                   end
     end
 
     # Applies the given scope's data to the event and sends it to Sentry.
@@ -47,16 +46,16 @@ module Sentry
         return
       end
 
-      event_type = event.is_a?(Event) ? event.type : event["type"]
+      event_type = event.is_a?(Event) ? event.type : event['type']
       event = scope.apply_to_event(event, hint)
 
       if event.nil?
-        log_info("Discarded event because one of the event processors returned nil")
+        log_info('Discarded event because one of the event processors returned nil')
         transport.record_lost_event(:event_processor, event_type)
         return
       end
 
-      if async_block = configuration.async
+      if (async_block = configuration.async)
         dispatch_async_event(async_block, event, hint)
       elsif configuration.background_worker_threads != 0 && hint.fetch(:background, true)
         queued = dispatch_background_event(event, hint)
@@ -66,8 +65,8 @@ module Sentry
       end
 
       event
-    rescue => e
-      log_error("Event capturing failed", e, debug: configuration.debug)
+    rescue StandardError => e
+      log_error('Event capturing failed', e, debug: configuration.debug)
       nil
     end
 
@@ -113,13 +112,13 @@ module Sentry
 
     # @!macro send_event
     def send_event(event, hint = nil)
-      event_type = event.is_a?(Event) ? event.type : event["type"]
+      event_type = event.is_a?(Event) ? event.type : event['type']
 
       if event_type != TransactionEvent::TYPE && configuration.before_send
         event = configuration.before_send.call(event, hint)
 
         if event.nil?
-          log_info("Discarded event because before_send returned nil")
+          log_info('Discarded event because before_send returned nil')
           transport.record_lost_event(:before_send, 'event')
           return
         end
@@ -129,7 +128,7 @@ module Sentry
         event = configuration.before_send_transaction.call(event, hint)
 
         if event.nil?
-          log_info("Discarded event because before_send_transaction returned nil")
+          log_info('Discarded event because before_send_transaction returned nil')
           transport.record_lost_event(:before_send, 'transaction')
           return
         end
@@ -138,7 +137,7 @@ module Sentry
       transport.send_event(event)
 
       event
-    rescue => e
+    rescue StandardError => e
       loggable_event_type = event_type.capitalize
       log_error("#{loggable_event_type} sending failed", e, debug: configuration.debug)
 
@@ -191,8 +190,9 @@ module Sentry
       event_hash =
         begin
           event.to_json_compatible
-        rescue => e
-          log_error("Converting #{event.type} (#{event.event_id}) to JSON compatible hash failed", e, debug: configuration.debug)
+        rescue StandardError => e
+          log_error("Converting #{event.type} (#{event.event_id}) to JSON compatible hash failed", e,
+                    debug: configuration.debug)
           return
         end
 
@@ -202,8 +202,8 @@ module Sentry
       else
         async_block.call(event_hash)
       end
-    rescue => e
-      log_error("Async #{event_hash["type"]} sending failed", e, debug: configuration.debug)
+    rescue StandardError => e
+      log_error("Async #{event_hash['type']} sending failed", e, debug: configuration.debug)
       send_event(event, hint)
     end
   end

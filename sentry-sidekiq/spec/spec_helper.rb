@@ -1,39 +1,37 @@
-require "bundler/setup"
-require "pry"
-require "debug" if RUBY_VERSION.to_f >= 2.6 && RUBY_ENGINE == "ruby"
+require 'bundler/setup'
+require 'pry'
+require 'debug' if RUBY_VERSION.to_f >= 2.6 && RUBY_ENGINE == 'ruby'
 
 # this enables sidekiq's server mode
-require "sidekiq/cli"
+require 'sidekiq/cli'
 
-WITH_SIDEKIQ_7 = Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new("7.0")
-WITH_SIDEKIQ_6 = Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new("6.0") && !WITH_SIDEKIQ_7
+WITH_SIDEKIQ_7 = Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('7.0')
+WITH_SIDEKIQ_6 = Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('6.0') && !WITH_SIDEKIQ_7
 
-if WITH_SIDEKIQ_7
-  require "sidekiq/embedded"
-end
+require 'sidekiq/embedded' if WITH_SIDEKIQ_7
 
-require "sentry-ruby"
+require 'sentry-ruby'
 
 require 'simplecov'
 
 SimpleCov.start do
-  project_name "sentry-sidekiq"
-  root File.join(__FILE__, "../../../")
-  coverage_dir File.join(__FILE__, "../../coverage")
+  project_name 'sentry-sidekiq'
+  root File.join(__FILE__, '../../../')
+  coverage_dir File.join(__FILE__, '../../coverage')
 end
 
-if ENV["CI"]
+if ENV['CI']
   require 'simplecov-cobertura'
   SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 end
 
-require "sentry-sidekiq"
+require 'sentry-sidekiq'
 
 DUMMY_DSN = 'http://12345:67890@sentry.localdomain/sentry/42'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = '.rspec_status'
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
@@ -73,11 +71,11 @@ rescue ZeroDivisionError => e
   e
 end
 
-def build_exception_with_cause(cause = "exception a")
+def build_exception_with_cause(cause = 'exception a')
   begin
     raise cause
-  rescue
-    raise "exception b"
+  rescue StandardError
+    raise 'exception b'
   end
 rescue RuntimeError => e
   e
@@ -86,12 +84,12 @@ end
 def build_exception_with_two_causes
   begin
     begin
-      raise "exception a"
-    rescue
-      raise "exception b"
+      raise 'exception a'
+    rescue StandardError
+      raise 'exception b'
     end
-  rescue
-    raise "exception c"
+  rescue StandardError
+    raise 'exception c'
   end
 rescue RuntimeError => e
   e
@@ -100,9 +98,9 @@ end
 def build_exception_with_recursive_cause
   backtrace = []
 
-  exception = double("Exception")
+  exception = double('Exception')
   allow(exception).to receive(:cause).and_return(exception)
-  allow(exception).to receive(:message).and_return("example")
+  allow(exception).to receive(:message).and_return('example')
   allow(exception).to receive(:backtrace).and_return(backtrace)
   exception
 end
@@ -123,7 +121,7 @@ class SadWorker
   def perform
     crumb = Sentry::Breadcrumb.new(message: "I'm sad!")
     Sentry.add_breadcrumb(crumb)
-    Sentry.set_tags :mood => 'sad'
+    Sentry.set_tags mood: 'sad'
 
     raise "I'm sad!"
   end
@@ -135,7 +133,7 @@ class VerySadWorker
   def perform
     crumb = Sentry::Breadcrumb.new(message: "I'm very sad!")
     Sentry.add_breadcrumb(crumb)
-    Sentry.set_tags :mood => 'very sad'
+    Sentry.set_tags mood: 'very sad'
 
     raise "I'm very sad!"
   end
@@ -145,25 +143,24 @@ class ReportingWorker
   include Sidekiq::Worker
 
   def perform
-    Sentry.capture_message("I have something to say!")
+    Sentry.capture_message('I have something to say!')
   end
 end
 
 class TagsWorker
   include Sidekiq::Worker
 
-  sidekiq_options tags: ["marvel", "dc"]
+  sidekiq_options tags: %w[marvel dc]
 
   def perform; end
 end
 
 def new_processor
   manager =
-    case
-    when WITH_SIDEKIQ_7
+    if WITH_SIDEKIQ_7
       capsule = Sidekiq.instance_variable_get(:@config).default_capsule
       Sidekiq::Manager.new(capsule)
-    when WITH_SIDEKIQ_6
+    elsif WITH_SIDEKIQ_6
       Sidekiq[:queue] = ['default']
       Sidekiq::Manager.new(Sidekiq)
     else
@@ -181,7 +178,7 @@ def execute_worker(processor, klass, **options)
     options[k.to_sym] = v
   end
 
-  msg = Sidekiq.dump_json(jid: "123123", class: klass, args: [], **options)
+  msg = Sidekiq.dump_json(jid: '123123', class: klass, args: [], **options)
   work = Sidekiq::BasicFetch::UnitOfWork.new('queue:default', msg)
   process_work(processor, work)
 end

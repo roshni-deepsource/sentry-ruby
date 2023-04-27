@@ -129,18 +129,18 @@ RSpec.describe Sentry::OpenTelemetry::Propagator do
         expect(baggage).to be_a(Sentry::Baggage)
         expect(baggage.mutable).to eq(false)
         expect(baggage.items).to eq({
-          'sample_rate' => '0.01337',
-          'public_key' => '49d0f7386ad645858ae85020e393bef3',
-          'trace_id' => 'd4cda95b652f4a1592b449d5929fda1b',
-          'user_id' => 'Amélie'
-        })
+                                      'sample_rate' => '0.01337',
+                                      'public_key' => '49d0f7386ad645858ae85020e393bef3',
+                                      'trace_id' => 'd4cda95b652f4a1592b449d5929fda1b',
+                                      'user_id' => 'Amélie'
+                                    })
       end
     end
   end
 
   describe '#fields' do
     it 'returns header names' do
-      expect(subject.fields).to eq(['sentry-trace', 'baggage'])
+      expect(subject.fields).to eq(%w[sentry-trace baggage])
     end
   end
 end

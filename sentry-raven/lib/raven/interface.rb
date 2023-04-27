@@ -9,7 +9,7 @@ module Raven
     end
 
     def self.inherited(klass)
-      name = klass.name.split("::").last.downcase.gsub("interface", "")
+      name = klass.name.split('::').last.downcase.gsub('interface', '')
       registered[name.to_sym] = klass
       super
     end

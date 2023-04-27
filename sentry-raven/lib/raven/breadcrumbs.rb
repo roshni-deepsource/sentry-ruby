@@ -13,12 +13,12 @@ module Raven
 
     def to_hash
       {
-        :category => @category,
-        :data => @data,
-        :level => @level,
-        :message => @message,
-        :timestamp => @timestamp,
-        :type => @type
+        category: @category,
+        data: @data,
+        level: @level,
+        message: @message,
+        timestamp: @timestamp,
+        type: @type
       }
     end
   end
@@ -69,7 +69,7 @@ module Raven
 
     def to_hash
       {
-        :values => members.map(&:to_hash)
+        values: members.map(&:to_hash)
       }
     end
   end

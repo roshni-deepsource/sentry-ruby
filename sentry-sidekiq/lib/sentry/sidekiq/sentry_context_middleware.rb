@@ -3,7 +3,7 @@ require 'sentry/sidekiq/context_filter'
 module Sentry
   module Sidekiq
     class SentryContextServerMiddleware
-      OP_NAME = "queue.sidekiq".freeze
+      OP_NAME = 'queue.sidekiq'.freeze
 
       def call(_worker, job, queue)
         return yield unless Sentry.initialized?
@@ -12,19 +12,19 @@ module Sentry
 
         Sentry.clone_hub_to_current_thread
         scope = Sentry.get_current_scope
-        if (user = job["sentry_user"])
+        if (user = job['sentry_user'])
           scope.set_user(user)
         end
-        scope.set_tags(queue: queue, jid: job["jid"])
-        scope.set_tags(build_tags(job["tags"]))
-        scope.set_contexts(sidekiq: job.merge("queue" => queue))
+        scope.set_tags(queue: queue, jid: job['jid'])
+        scope.set_tags(build_tags(job['tags']))
+        scope.set_contexts(sidekiq: job.merge('queue' => queue))
         scope.set_transaction_name(context_filter.transaction_name, source: :task)
-        transaction = start_transaction(scope, job["sentry_trace"])
+        transaction = start_transaction(scope, job['sentry_trace'])
         scope.set_span(transaction) if transaction
 
         begin
           yield
-        rescue
+        rescue StandardError
           finish_transaction(transaction, 500)
           raise
         end
@@ -59,8 +59,8 @@ module Sentry
 
         user = Sentry.get_current_scope.user
         transaction = Sentry.get_current_scope.get_transaction
-        job["sentry_user"] = user unless user.empty?
-        job["sentry_trace"] = transaction.to_sentry_trace if transaction
+        job['sentry_user'] = user unless user.empty?
+        job['sentry_trace'] = transaction.to_sentry_trace if transaction
         yield
       end
     end

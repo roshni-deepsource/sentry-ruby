@@ -232,18 +232,18 @@ module Raven
     ].freeze
 
     HEROKU_DYNO_METADATA_MESSAGE = "You are running on Heroku but haven't enabled Dyno Metadata. For Sentry's "\
-    "release detection to work correctly, please run `heroku labs:enable runtime-dyno-metadata`".freeze
+    'release detection to work correctly, please run `heroku labs:enable runtime-dyno-metadata`'.freeze
 
-    RACK_ENV_WHITELIST_DEFAULT = %w(
+    RACK_ENV_WHITELIST_DEFAULT = %w[
       REMOTE_ADDR
       SERVER_NAME
       SERVER_PORT
-    ).freeze
+    ].freeze
 
-    LOG_PREFIX = "** [Raven] ".freeze
-    MODULE_SEPARATOR = "::".freeze
+    LOG_PREFIX = '** [Raven] '.freeze
+    MODULE_SEPARATOR = '::'.freeze
 
-    AVAILABLE_BREADCRUMBS_LOGGERS = [:sentry_logger, :active_support_logger].freeze
+    AVAILABLE_BREADCRUMBS_LOGGERS = %i[sentry_logger active_support_logger].freeze
 
     def initialize
       self.async = false
@@ -309,14 +309,14 @@ module Raven
     alias dsn= server=
 
     def encoding=(encoding)
-      raise(Error, 'Unsupported encoding') unless %w(gzip json).include? encoding
+      raise(Error, 'Unsupported encoding') unless %w[gzip json].include? encoding
 
       @encoding = encoding
     end
 
     def async=(value)
       unless value == false || value.respond_to?(:call)
-        raise(ArgumentError, "async must be callable (or false to disable)")
+        raise(ArgumentError, 'async must be callable (or false to disable)')
       end
 
       @async = value
@@ -334,14 +334,14 @@ module Raven
           Array(logger)
         end
 
-      require "raven/breadcrumbs/sentry_logger" if loggers.include?(:sentry_logger)
+      require 'raven/breadcrumbs/sentry_logger' if loggers.include?(:sentry_logger)
 
       @breadcrumbs_logger = logger
     end
 
     def transport_failure_callback=(value)
       unless value == false || value.respond_to?(:call)
-        raise(ArgumentError, "transport_failure_callback must be callable (or false to disable)")
+        raise(ArgumentError, 'transport_failure_callback must be callable (or false to disable)')
       end
 
       @transport_failure_callback = value
@@ -349,7 +349,7 @@ module Raven
 
     def should_capture=(value)
       unless value == false || value.respond_to?(:call)
-        raise ArgumentError, "should_capture must be callable (or false to disable)"
+        raise ArgumentError, 'should_capture must be callable (or false to disable)'
       end
 
       @should_capture = value
@@ -357,7 +357,7 @@ module Raven
 
     def before_send=(value)
       unless value == false || value.respond_to?(:call)
-        raise ArgumentError, "before_send must be callable (or false to disable)"
+        raise ArgumentError, 'before_send must be callable (or false to disable)'
       end
 
       @before_send = value
@@ -387,7 +387,7 @@ module Raven
 
     def error_messages
       @errors = [errors[0]] + errors[1..-1].map(&:downcase) # fix case of all but first
-      errors.join(", ")
+      errors.join(', ')
     end
 
     def project_root=(root_dir)
@@ -432,7 +432,7 @@ module Raven
         detect_release_from_git ||
         detect_release_from_capistrano ||
         detect_release_from_heroku
-    rescue => e
+    rescue StandardError => e
       logger.error "Error detecting release: #{e.message}"
     end
 
@@ -448,7 +448,9 @@ module Raven
 
     def matches_exception?(excluded_exception_class, incoming_exception)
       if inspect_exception_causes_for_exclusion?
-        Raven::Utils::ExceptionCauseChain.exception_to_array(incoming_exception).any? { |cause| excluded_exception_class === cause }
+        Raven::Utils::ExceptionCauseChain.exception_to_array(incoming_exception).any? do |cause|
+          excluded_exception_class === cause
+        end
       else
         excluded_exception_class === incoming_exception
       end
@@ -475,7 +477,7 @@ module Raven
     end
 
     def running_on_heroku?
-      File.directory?("/etc/heroku")
+      File.directory?('/etc/heroku')
     end
 
     def detect_release_from_capistrano
@@ -490,7 +492,7 @@ module Raven
     end
 
     def detect_release_from_git
-      Raven.sys_command("git rev-parse --short HEAD") if File.directory?(".git")
+      Raven.sys_command('git rev-parse --short HEAD') if File.directory?('.git')
     end
 
     def detect_release_from_env
@@ -507,19 +509,19 @@ module Raven
     def capture_allowed_by_callback?(message_or_exc)
       return true if !should_capture || message_or_exc.nil? || should_capture.call(message_or_exc)
 
-      @errors << "should_capture returned false"
+      @errors << 'should_capture returned false'
       false
     end
 
     def valid?
-      return true if %w(server host path public_key project_id).all? { |k| public_send(k) }
+      return true if %w[server host path public_key project_id].all? { |k| public_send(k) }
 
       if server
-        %w(server host path public_key project_id).map do |key|
+        %w[server host path public_key project_id].map do |key|
           @errors << "No #{key} specified" unless public_send(key)
         end
       else
-        @errors << "DSN not set"
+        @errors << 'DSN not set'
       end
       false
     end
@@ -528,7 +530,7 @@ module Raven
       return true if sample_rate == 1.0
 
       if Random::DEFAULT.rand >= sample_rate
-        @errors << "Excluded by random sample"
+        @errors << 'Excluded by random sample'
         false
       else
         true
@@ -539,7 +541,9 @@ module Raven
     # the load name is.
     def resolve_hostname
       Socket.gethostname ||
-        Socket.gethostbyname(hostname).first rescue server_name
+        Socket.gethostbyname(hostname).first
+    rescue StandardError
+      server_name
     end
 
     def current_environment_from_env

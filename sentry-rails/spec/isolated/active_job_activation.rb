@@ -1,9 +1,10 @@
 # frozen_string_literal: true
+
 # for https://github.com/getsentry/sentry-ruby/issues/1249
-require "active_job/railtie"
-require "active_support/all"
-require "sentry/rails"
-require "minitest/autorun"
+require 'active_job/railtie'
+require 'active_support/all'
+require 'sentry/rails'
+require 'minitest/autorun'
 
 class TestApp < Rails::Application
 end
@@ -14,12 +15,12 @@ app = TestApp
 
 # Simulate code from the application's init files in config/initializer
 app.initializer :config_initializer do
-  Rails.application.config.active_job.queue_name = "bobo"
+  Rails.application.config.active_job.queue_name = 'bobo'
 end
 
 # to simulate jobs being load during the eager_load initializer
 app.initializer :eager_load! do
-  Object.class_eval <<~CODE
+  Object.class_eval <<~CODE, __FILE__, __LINE__ + 1
     class ApplicationJob < ActiveJob::Base
       self.logger = Logger.new(IO_STUB)
       self.queue_adapter = :inline
@@ -63,6 +64,6 @@ class ActiveJobExtensionsTest < ActiveSupport::TestCase
   end
 
   def test_the_extension_doesnt_load_activejob_too_soon
-    assert_equal("bobo", ApplicationJob.queue_name)
+    assert_equal('bobo', ApplicationJob.queue_name)
   end
 end

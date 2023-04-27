@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe "Integration tests" do
+RSpec.describe 'Integration tests' do
   before(:each) do
     @io = StringIO.new
     @logger = Logger.new(@io)
@@ -15,13 +15,13 @@ RSpec.describe "Integration tests" do
 
   it "prints deprecation warning when requiring 'sentry-raven-without-integrations'" do
     expect do
-      require "sentry-raven-without-integrations"
+      require 'sentry-raven-without-integrations'
     end.to output(
       "[Deprecation Warning] Dasherized filename \"sentry-raven-without-integrations\" is deprecated and will be removed in 4.0; use \"sentry_raven_without_integrations\" instead\n" # rubocop:disable Style/LineLength
     ).to_stderr
   end
 
-  it "posting an exception" do
+  it 'posting an exception' do
     @stubs.post('sentry/api/42/store/') { [200, {}, 'ok'] }
 
     @instance.capture_exception(build_exception)
@@ -30,7 +30,7 @@ RSpec.describe "Integration tests" do
     expect(@io.string).to match(/Sending event [0-9a-f]+ to Sentry$/)
   end
 
-  it "posting an exception to a prefixed DSN" do
+  it 'posting an exception to a prefixed DSN' do
     @stubs.post('/prefix/sentry/api/42/store/') { [200, {}, 'ok'] }
     @instance.configuration.server = 'http://12345:67890@sentry.localdomain/prefix/sentry/42'
 
@@ -50,22 +50,24 @@ RSpec.describe "Integration tests" do
   #   @stubs.verify_stubbed_calls
   # end
 
-  it "timed backoff should prevent sends" do
-    expect(@instance.client.transport).to receive(:send_event).exactly(1).times.and_raise(Faraday::ConnectionFailed, "conn failed")
+  it 'timed backoff should prevent sends' do
+    expect(@instance.client.transport).to receive(:send_event).exactly(1).times.and_raise(Faraday::ConnectionFailed,
+                                                                                          'conn failed')
     2.times { @instance.capture_exception(build_exception) }
     expect(@io.string).to match(/Failed to submit event: ZeroDivisionError: divided by 0$/)
   end
 
-  it "transport failure should call transport_failure_callback" do
+  it 'transport failure should call transport_failure_callback' do
     @instance.configuration.transport_failure_callback = proc { |_event, error| @io.puts "OK! - #{error.message}" }
 
-    expect(@instance.client.transport).to receive(:send_event).exactly(1).times.and_raise(Faraday::ConnectionFailed, "conn failed")
+    expect(@instance.client.transport).to receive(:send_event).exactly(1).times.and_raise(Faraday::ConnectionFailed,
+                                                                                          'conn failed')
     @instance.capture_exception(build_exception)
     expect(@io.string).to match(/OK! - conn failed$/)
   end
 
   describe '#before_send' do
-    it "change event before sending (capture_exception)" do
+    it 'change event before sending (capture_exception)' do
       @stubs.post('/prefix/sentry/api/42/store/') { [200, {}, 'ok'] }
 
       @instance.configuration.server = 'http://12345:67890@sentry.localdomain/prefix/sentry/42'
@@ -82,7 +84,7 @@ RSpec.describe "Integration tests" do
       @stubs.verify_stubbed_calls
     end
 
-    it "change event before sending (capture_message)" do
+    it 'change event before sending (capture_message)' do
       @stubs.post('/prefix/sentry/api/42/store/') { [200, {}, 'ok'] }
 
       @instance.configuration.server = 'http://12345:67890@sentry.localdomain/prefix/sentry/42'
@@ -100,7 +102,7 @@ RSpec.describe "Integration tests" do
       @stubs.verify_stubbed_calls
     end
 
-    it "return nil" do
+    it 'return nil' do
       @instance.configuration.server = 'http://12345:67890@sentry.localdomain/prefix/sentry/42'
       @instance.configuration.before_send = lambda { |_event, _hint|
         nil

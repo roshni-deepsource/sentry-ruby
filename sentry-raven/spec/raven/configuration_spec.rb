@@ -11,23 +11,23 @@ RSpec.describe Raven::Configuration do
     ENV.delete('RACK_ENV')
   end
 
-  it "should set some attributes when server is set" do
-    subject.server = "http://12345:67890@sentry.localdomain:3000/sentry/42"
+  it 'should set some attributes when server is set' do
+    subject.server = 'http://12345:67890@sentry.localdomain:3000/sentry/42'
 
-    expect(subject.project_id).to eq("42")
-    expect(subject.public_key).to eq("12345")
-    expect(subject.secret_key).to eq("67890")
+    expect(subject.project_id).to eq('42')
+    expect(subject.public_key).to eq('12345')
+    expect(subject.secret_key).to eq('67890')
 
-    expect(subject.scheme).to     eq("http")
-    expect(subject.host).to       eq("sentry.localdomain")
+    expect(subject.scheme).to     eq('http')
+    expect(subject.host).to       eq('sentry.localdomain')
     expect(subject.port).to       eq(3000)
-    expect(subject.path).to       eq("/sentry")
+    expect(subject.path).to       eq('/sentry')
 
-    expect(subject.server).to     eq("http://sentry.localdomain:3000/sentry")
+    expect(subject.server).to     eq('http://sentry.localdomain:3000/sentry')
   end
 
-  describe "#breadcrumbs_logger=" do
-    it "raises error when given an invalid option" do
+  describe '#breadcrumbs_logger=' do
+    it 'raises error when given an invalid option' do
       expect { subject.breadcrumbs_logger = :foo }.to raise_error(
         Raven::Error,
         'Unsupported breadcrumbs logger. Supported loggers: [:sentry_logger, :active_support_logger]'
@@ -35,13 +35,13 @@ RSpec.describe Raven::Configuration do
     end
   end
 
-  it "doesnt accept invalid encodings" do
-    expect { subject.encoding = "apple" }.to raise_error(Raven::Error, 'Unsupported encoding')
+  it 'doesnt accept invalid encodings' do
+    expect { subject.encoding = 'apple' }.to raise_error(Raven::Error, 'Unsupported encoding')
   end
 
-  it "has hashlike attribute accessors" do
-    expect(subject.encoding).to   eq("gzip")
-    expect(subject[:encoding]).to eq("gzip")
+  it 'has hashlike attribute accessors' do
+    expect(subject.encoding).to   eq('gzip')
+    expect(subject[:encoding]).to eq('gzip')
   end
 
   context 'configuring for async' do
@@ -82,14 +82,14 @@ RSpec.describe Raven::Configuration do
     end
 
     it 'should send events if test is whitelisted' do
-      subject.environments = %w(test)
+      subject.environments = %w[test]
       subject.capture_allowed?
       puts subject.errors
       expect(subject.capture_allowed?).to eq(true)
     end
 
     it 'should not send events if test is not whitelisted' do
-      subject.environments = %w(not_test)
+      subject.environments = %w[not_test]
       expect(subject.capture_allowed?).to eq(false)
       expect(subject.errors).to eq(["Not configured to send/capture in environment 'test'"])
     end
@@ -142,7 +142,7 @@ RSpec.describe Raven::Configuration do
   end
 
   context 'being initialized without a release' do
-    let(:fake_root) { "/tmp/sentry/" }
+    let(:fake_root) { '/tmp/sentry/' }
 
     before do
       allow(File).to receive(:directory?).and_return(false)
@@ -161,20 +161,20 @@ RSpec.describe Raven::Configuration do
       ENV.delete('SENTRY_CURRENT_ENV')
     end
 
-    context "when git is available" do
+    context 'when git is available' do
       before do
         allow(File).to receive(:directory?).and_return(false)
-        allow(File).to receive(:directory?).with(".git").and_return(true)
+        allow(File).to receive(:directory?).with('.git').and_return(true)
       end
       it 'gets release from git' do
-        allow(Raven).to receive(:`).with("git rev-parse --short HEAD 2>&1").and_return("COMMIT_SHA")
+        allow(Raven).to receive(:`).with('git rev-parse --short HEAD 2>&1').and_return('COMMIT_SHA')
 
         expect(subject.release).to eq('COMMIT_SHA')
       end
     end
 
-    context "when Capistrano is available" do
-      let(:revision) { "2019010101000" }
+    context 'when Capistrano is available' do
+      let(:revision) { '2019010101000' }
 
       before do
         Dir.mkdir(fake_root) unless Dir.exist?(fake_root)
@@ -186,89 +186,83 @@ RSpec.describe Raven::Configuration do
         Dir.delete(fake_root)
       end
 
-      context "when the REVISION file is present" do
+      context 'when the REVISION file is present' do
         let(:filename) do
-          File.join(fake_root, "REVISION")
+          File.join(fake_root, 'REVISION')
         end
         let(:file_content) { revision }
 
-        it "gets release from the REVISION file" do
+        it 'gets release from the REVISION file' do
           expect(subject.release).to eq(revision)
         end
       end
 
-      context "when the revisions.log file is present" do
+      context 'when the revisions.log file is present' do
         let(:filename) do
-          File.join(fake_root, "..", "revisions.log")
+          File.join(fake_root, '..', 'revisions.log')
         end
         let(:file_content) do
           "Branch master (at COMMIT_SHA) deployed as release #{revision} by alice"
         end
 
-        it "gets release from the REVISION file" do
+        it 'gets release from the REVISION file' do
           expect(subject.release).to eq(revision)
         end
       end
     end
 
-    context "when running on heroku" do
+    context 'when running on heroku' do
       before do
         allow(File).to receive(:directory?).and_return(false)
-        allow(File).to receive(:directory?).with("/etc/heroku").and_return(true)
+        allow(File).to receive(:directory?).with('/etc/heroku').and_return(true)
       end
 
       context "when it's on heroku ci" do
-        it "returns nil" do
-          begin
-            original_ci_val = ENV["CI"]
-            ENV["CI"] = "true"
+        it 'returns nil' do
+          original_ci_val = ENV['CI']
+          ENV['CI'] = 'true'
 
-            expect(subject.release).to eq(nil)
-          ensure
-            ENV["CI"] = original_ci_val
-          end
+          expect(subject.release).to eq(nil)
+        ensure
+          ENV['CI'] = original_ci_val
         end
       end
 
       context "when it's not on heroku ci" do
         around do |example|
-          begin
-            original_ci_val = ENV["CI"]
-            ENV["CI"] = nil
+          original_ci_val = ENV['CI']
+          ENV['CI'] = nil
 
-            example.run
-          ensure
-            ENV["CI"] = original_ci_val
-          end
+          example.run
+        ensure
+          ENV['CI'] = original_ci_val
         end
 
-        it "returns nil + logs an warning if HEROKU_SLUG_COMMIT is not set" do
-          logger = double("logger")
+        it 'returns nil + logs an warning if HEROKU_SLUG_COMMIT is not set' do
+          logger = double('logger')
           expect(::Raven::Logger).to receive(:new).and_return(logger)
           expect(logger).to receive(:warn).with(described_class::HEROKU_DYNO_METADATA_MESSAGE)
 
           expect(described_class.new.release).to eq(nil)
         end
 
-        it "returns HEROKU_SLUG_COMMIT" do
-          begin
-            ENV["HEROKU_SLUG_COMMIT"] = "REVISION"
+        it 'returns HEROKU_SLUG_COMMIT' do
+          ENV['HEROKU_SLUG_COMMIT'] = 'REVISION'
 
-            expect(subject.release).to eq("REVISION")
-          ensure
-            ENV["HEROKU_SLUG_COMMIT"] = nil
-          end
+          expect(subject.release).to eq('REVISION')
+        ensure
+          ENV['HEROKU_SLUG_COMMIT'] = nil
         end
       end
     end
   end
 
-  describe "config: backtrace_cleanup_callback" do
-    it "defaults to nil" do
+  describe 'config: backtrace_cleanup_callback' do
+    it 'defaults to nil' do
       expect(subject.backtrace_cleanup_callback).to eq(nil)
     end
 
-    it "takes a proc and store it" do
+    it 'takes a proc and store it' do
       subject.backtrace_cleanup_callback = proc {}
 
       expect(subject.backtrace_cleanup_callback).to be_a(Proc)
@@ -277,48 +271,48 @@ RSpec.describe Raven::Configuration do
 
   context 'with a should_capture callback configured' do
     before(:each) do
-      subject.should_capture = ->(exc_or_msg) { exc_or_msg != "dont send me" }
+      subject.should_capture = ->(exc_or_msg) { exc_or_msg != 'dont send me' }
       subject.server = 'http://12345:67890@sentry.localdomain:3000/sentry/42'
     end
 
     it 'should not send events if should_capture returns false' do
-      expect(subject.capture_allowed?("dont send me")).to eq(false)
-      expect(subject.errors).to eq(["should_capture returned false"])
-      expect(subject.capture_allowed?("send me")).to eq(true)
+      expect(subject.capture_allowed?('dont send me')).to eq(false)
+      expect(subject.errors).to eq(['should_capture returned false'])
+      expect(subject.capture_allowed?('send me')).to eq(true)
     end
   end
 
-  context "with an invalid server" do
+  context 'with an invalid server' do
     before(:each) do
       subject.server = 'dummy://trololo'
     end
 
     it 'captured_allowed returns false' do
       expect(subject.capture_allowed?).to eq(false)
-      expect(subject.errors).to eq(["No public_key specified", "No project_id specified"])
+      expect(subject.errors).to eq(['No public_key specified', 'No project_id specified'])
     end
   end
 
-  context "with the new Sentry 9 DSN format" do
+  context 'with the new Sentry 9 DSN format' do
     # Basically the same as before, without a secret
     before(:each) do
-      subject.server = "https://66260460f09b5940498e24bb7ce093a0@sentry.io/42"
+      subject.server = 'https://66260460f09b5940498e24bb7ce093a0@sentry.io/42'
     end
 
     it 'captured_allowed is true' do
       expect(subject.capture_allowed?).to eq(true)
     end
 
-    it "sets the DSN in the way we expect" do
-      expect(subject.dsn).to eq("https://66260460f09b5940498e24bb7ce093a0@sentry.io/42")
-      expect(subject.server).to eq("https://sentry.io")
-      expect(subject.project_id).to eq("42")
-      expect(subject.public_key).to eq("66260460f09b5940498e24bb7ce093a0")
+    it 'sets the DSN in the way we expect' do
+      expect(subject.dsn).to eq('https://66260460f09b5940498e24bb7ce093a0@sentry.io/42')
+      expect(subject.server).to eq('https://sentry.io')
+      expect(subject.project_id).to eq('42')
+      expect(subject.public_key).to eq('66260460f09b5940498e24bb7ce093a0')
       expect(subject.secret_key).to be_nil
     end
   end
 
-  context "with a sample rate" do
+  context 'with a sample rate' do
     before(:each) do
       subject.server = 'http://12345:67890@sentry.localdomain:3000/sentry/42'
       subject.sample_rate = 0.75
@@ -327,7 +321,7 @@ RSpec.describe Raven::Configuration do
     it 'captured_allowed false when sampled' do
       allow(Random::DEFAULT).to receive(:rand).and_return(0.76)
       expect(subject.capture_allowed?).to eq(false)
-      expect(subject.errors).to eq(["Excluded by random sample"])
+      expect(subject.errors).to eq(['Excluded by random sample'])
     end
 
     it 'captured_allowed true when not sampled' do

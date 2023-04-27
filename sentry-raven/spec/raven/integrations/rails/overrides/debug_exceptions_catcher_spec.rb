@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.shared_examples "exception catching middleware" do
+RSpec.shared_examples 'exception catching middleware' do
   let(:middleware) do
     Class.new do
       def initialize(app)
@@ -9,7 +9,7 @@ RSpec.shared_examples "exception catching middleware" do
 
       def call(env)
         @app.call(env)
-      rescue => e
+      rescue StandardError => e
         render_exception(env, e)
       end
 
@@ -20,50 +20,50 @@ RSpec.shared_examples "exception catching middleware" do
   end
 
   let(:app) do
-    lambda { |_| raise "app error" } # rubocop:disable Style/Lambda
+    lambda { |_| raise 'app error' } # rubocop:disable Style/Lambda
   end
 
   let(:env) { {} }
 
-  it "shows the exception" do
-    expect(middleware.new(app).call(env)).to eq([500, "app error", {}])
+  it 'shows the exception' do
+    expect(middleware.new(app).call(env)).to eq([500, 'app error', {}])
   end
 
-  it "captures the exception" do
+  it 'captures the exception' do
     expect(Raven::Rack).to receive(:capture_exception)
     middleware.new(app).call(env)
   end
 
-  context "when an error is raised" do
-    it "shows the original exception" do
-      allow(Raven::Rack).to receive(:capture_exception).and_raise("raven error")
-      expect(middleware.new(app).call(env)).to eq([500, "app error", {}])
+  context 'when an error is raised' do
+    it 'shows the original exception' do
+      allow(Raven::Rack).to receive(:capture_exception).and_raise('raven error')
+      expect(middleware.new(app).call(env)).to eq([500, 'app error', {}])
     end
   end
 end
 
-RSpec.describe "Raven::Rails::Overrides::DebugExceptionsCatcher", :rails => true do
+RSpec.describe 'Raven::Rails::Overrides::DebugExceptionsCatcher', rails: true do
   before(:all) do
     require 'raven/integrations/rails/overrides/debug_exceptions_catcher'
   end
 
   if Class.respond_to?(:alias_method_chain)
-    context "using include" do
+    context 'using include' do
       before do
         middleware.send(:include, Raven::Rails::Overrides::OldDebugExceptionsCatcher)
       end
 
-      include_examples "exception catching middleware"
+      include_examples 'exception catching middleware'
     end
   end
 
   if Class.respond_to?(:prepend)
-    context "using prepend" do
+    context 'using prepend' do
       before do
         middleware.send(:prepend, Raven::Rails::Overrides::DebugExceptionsCatcher)
       end
 
-      include_examples "exception catching middleware"
+      include_examples 'exception catching middleware'
     end
   end
 end

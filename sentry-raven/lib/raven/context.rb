@@ -16,7 +16,7 @@ module Raven
     def initialize
       self.server_os = self.class.os_context
       self.runtime = self.class.runtime_context
-      self.extra = { :server => { :os => server_os, :runtime => runtime } }
+      self.extra = { server: { os: server_os, runtime: runtime } }
       self.rack_env = nil
       self.tags = {}
       self.user = {}
@@ -29,7 +29,7 @@ module Raven
           begin
             uname = Etc.uname
             {
-              name: uname[:sysname] || RbConfig::CONFIG["host_os"],
+              name: uname[:sysname] || RbConfig::CONFIG['host_os'],
               version: uname[:version],
               build: uname[:release],
               kernel_version: uname[:version]
@@ -39,8 +39,8 @@ module Raven
 
       def runtime_context
         @runtime_context ||= {
-          name: RbConfig::CONFIG["ruby_install_name"],
-          version: RUBY_DESCRIPTION || Raven.sys_command("ruby -v")
+          name: RbConfig::CONFIG['ruby_install_name'],
+          version: RUBY_DESCRIPTION || Raven.sys_command('ruby -v')
         }
       end
     end

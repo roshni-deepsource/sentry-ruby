@@ -1,4 +1,4 @@
-require "spec_helper"
+require 'spec_helper'
 require 'sidekiq/manager'
 require 'sidekiq/api'
 
@@ -8,7 +8,7 @@ RSpec.describe Sentry::Sidekiq do
   end
 
   let(:queue) do
-    Sidekiq::Queue.new("default")
+    Sidekiq::Queue.new('default')
   end
 
   let(:retry_set) do
@@ -35,7 +35,7 @@ RSpec.describe Sentry::Sidekiq do
     Sentry.get_current_client.transport
   end
 
-  it "registers error handlers and middlewares" do
+  it 'registers error handlers and middlewares' do
     if WITH_SIDEKIQ_7
       config = Sidekiq.instance_variable_get(:@config)
 
@@ -49,11 +49,11 @@ RSpec.describe Sentry::Sidekiq do
     end
   end
 
-  it "captues exception raised in the worker" do
+  it 'captues exception raised in the worker' do
     expect { execute_worker(processor, SadWorker) }.to change { transport.events.size }.by(1)
 
     event = transport.events.last.to_hash
-    expect(event[:sdk]).to eq({ name: "sentry.ruby.sidekiq", version: described_class::VERSION })
+    expect(event[:sdk]).to eq({ name: 'sentry.ruby.sidekiq', version: described_class::VERSION })
     expect(Sentry::Event.get_message_from_exception(event)).to match("RuntimeError: I'm sad!")
   end
 
@@ -61,50 +61,51 @@ RSpec.describe Sentry::Sidekiq do
     expect { execute_worker(processor, SadWorker) }.to change { transport.events.size }.by(1)
 
     event = transport.events.last.to_hash
-    expect(event[:contexts][:sidekiq].keys.map(&:to_s)).not_to include("_config")
+    expect(event[:contexts][:sidekiq].keys.map(&:to_s)).not_to include('_config')
   end
 
-  describe "context cleanup" do
-    it "cleans up context from processed jobs" do
+  describe 'context cleanup' do
+    it 'cleans up context from processed jobs' do
       execute_worker(processor, HappyWorker)
       execute_worker(processor, SadWorker)
 
       expect(transport.events.count).to eq(1)
       event = transport.events.last.to_json_compatible
 
-      expect(event["tags"]).to eq("queue" => "default", "jid" => "123123", "mood" => "sad")
-      expect(event["transaction"]).to eq("Sidekiq/SadWorker")
-      expect(event["breadcrumbs"]["values"][0]["message"]).to eq("I'm sad!")
+      expect(event['tags']).to eq('queue' => 'default', 'jid' => '123123', 'mood' => 'sad')
+      expect(event['transaction']).to eq('Sidekiq/SadWorker')
+      expect(event['breadcrumbs']['values'][0]['message']).to eq("I'm sad!")
     end
 
-    it "cleans up context from failed jobs" do
+    it 'cleans up context from failed jobs' do
       execute_worker(processor, SadWorker)
       execute_worker(processor, VerySadWorker)
 
       expect(transport.events.count).to eq(2)
       event = transport.events.last.to_json_compatible
 
-      expect(event["tags"]).to eq("queue" => "default", "jid" => "123123", "mood" => "very sad")
-      expect(event["breadcrumbs"]["values"][0]["message"]).to eq("I'm very sad!")
+      expect(event['tags']).to eq('queue' => 'default', 'jid' => '123123', 'mood' => 'very sad')
+      expect(event['breadcrumbs']['values'][0]['message']).to eq("I'm very sad!")
     end
   end
 
-  it "has some context when capturing, even if no exception raised" do
+  it 'has some context when capturing, even if no exception raised' do
     execute_worker(processor, ReportingWorker)
 
     event = transport.events.last.to_json_compatible
 
-    expect(event["message"]).to eq "I have something to say!"
-    expect(event["contexts"]["sidekiq"]).to eq("args" => [], "class" => "ReportingWorker", "jid" => "123123", "queue" => "default")
+    expect(event['message']).to eq 'I have something to say!'
+    expect(event['contexts']['sidekiq']).to eq('args' => [], 'class' => 'ReportingWorker', 'jid' => '123123',
+                                               'queue' => 'default')
   end
 
-  it "adds the failed job to the retry queue" do
+  it 'adds the failed job to the retry queue' do
     execute_worker(processor, SadWorker)
 
     expect(retry_set.count).to eq(1)
   end
 
-  context "with config.report_after_job_retries = true" do
+  context 'with config.report_after_job_retries = true' do
     before do
       Sentry.configuration.sidekiq.report_after_job_retries = true
     end
@@ -116,7 +117,7 @@ RSpec.describe Sentry::Sidekiq do
       process_work(processor, work)
     end
 
-    context "when retry: is specified" do
+    context 'when retry: is specified' do
       it "doesn't report the error until retries are exhuasted" do
         worker = Class.new(SadWorker)
         worker.sidekiq_options retry: 5
@@ -124,7 +125,7 @@ RSpec.describe Sentry::Sidekiq do
         expect(transport.events.count).to eq(0)
         expect(retry_set.count).to eq(1)
 
-        4.times do |i|
+        4.times do |_i|
           retry_last_failed_job
           expect(transport.events.count).to eq(0)
         end
@@ -134,8 +135,8 @@ RSpec.describe Sentry::Sidekiq do
       end
     end
 
-    context "when the job has 0 retries" do
-      it "reports on the first failure" do
+    context 'when the job has 0 retries' do
+      it 'reports on the first failure' do
         worker = Class.new(SadWorker)
         worker.sidekiq_options retry: 0
 
@@ -145,8 +146,8 @@ RSpec.describe Sentry::Sidekiq do
       end
     end
 
-    context "when the job has retry: false" do
-      it "reports on the first failure" do
+    context 'when the job has retry: false' do
+      it 'reports on the first failure' do
         worker = Class.new(SadWorker)
         worker.sidekiq_options retry: false
 
@@ -156,18 +157,18 @@ RSpec.describe Sentry::Sidekiq do
       end
     end
 
-    context "when retry is not specified on the worker" do
+    context 'when retry is not specified on the worker' do
       before do
         # this is required for Sidekiq to assign default options to the worker
         SadWorker.sidekiq_options
       end
 
-      it "reports on the 25th retry" do
+      it 'reports on the 25th retry' do
         execute_worker(processor, SadWorker)
         expect(transport.events.count).to eq(0)
         expect(retry_set.count).to eq(1)
 
-        24.times do |i|
+        24.times do |_i|
           retry_last_failed_job
           expect(transport.events.count).to eq(0)
         end
@@ -176,8 +177,8 @@ RSpec.describe Sentry::Sidekiq do
         expect(transport.events.count).to eq(1)
       end
 
-      context "when Sidekiq.options[:max_retries] is set" do
-        it "respects the set limit" do
+      context 'when Sidekiq.options[:max_retries] is set' do
+        it 'respects the set limit' do
           if WITH_SIDEKIQ_7
             Sidekiq.default_configuration[:max_retries] = 5
           else
@@ -188,7 +189,7 @@ RSpec.describe Sentry::Sidekiq do
           expect(transport.events.count).to eq(0)
           expect(retry_set.count).to eq(1)
 
-          4.times do |i|
+          4.times do |_i|
             retry_last_failed_job
             expect(transport.events.count).to eq(0)
           end
@@ -200,44 +201,44 @@ RSpec.describe Sentry::Sidekiq do
     end
   end
 
-  context "when tracing is enabled" do
+  context 'when tracing is enabled' do
     before do
       perform_basic_setup do |config|
         config.traces_sample_rate = 1.0
       end
     end
 
-    it "records transaction" do
+    it 'records transaction' do
       execute_worker(processor, HappyWorker)
 
       expect(transport.events.count).to eq(1)
       transaction = transport.events.first
 
-      expect(transaction.transaction).to eq("Sidekiq/HappyWorker")
+      expect(transaction.transaction).to eq('Sidekiq/HappyWorker')
       expect(transaction.transaction_info).to eq({ source: :task })
       expect(transaction.contexts.dig(:trace, :trace_id)).to be_a(String)
       expect(transaction.contexts.dig(:trace, :span_id)).to be_a(String)
-      expect(transaction.contexts.dig(:trace, :status)).to eq("ok")
-      expect(transaction.contexts.dig(:trace, :op)).to eq("queue.sidekiq")
+      expect(transaction.contexts.dig(:trace, :status)).to eq('ok')
+      expect(transaction.contexts.dig(:trace, :op)).to eq('queue.sidekiq')
     end
 
-    it "records transaction with exception" do
+    it 'records transaction with exception' do
       execute_worker(processor, SadWorker)
 
       expect(transport.events.count).to eq(2)
       transaction = transport.events.first
 
-      expect(transaction.transaction).to eq("Sidekiq/SadWorker")
+      expect(transaction.transaction).to eq('Sidekiq/SadWorker')
       expect(transaction.transaction_info).to eq({ source: :task })
       expect(transaction.contexts.dig(:trace, :trace_id)).to be_a(String)
       expect(transaction.contexts.dig(:trace, :span_id)).to be_a(String)
-      expect(transaction.contexts.dig(:trace, :status)).to eq("internal_error")
+      expect(transaction.contexts.dig(:trace, :status)).to eq('internal_error')
 
       event = transport.events.last
       expect(event.contexts.dig(:trace, :trace_id)).to eq(transaction.contexts.dig(:trace, :trace_id))
     end
 
-    context "with instrumenter :otel" do
+    context 'with instrumenter :otel' do
       before do
         perform_basic_setup do |config|
           config.traces_sample_rate = 1.0
@@ -245,7 +246,7 @@ RSpec.describe Sentry::Sidekiq do
         end
       end
 
-      it "does not record transaction" do
+      it 'does not record transaction' do
         execute_worker(processor, SadWorker)
         expect(transport.events.count).to eq(1)
         event = transport.events.first
@@ -254,4 +255,3 @@ RSpec.describe Sentry::Sidekiq do
     end
   end
 end
-

@@ -1,9 +1,6 @@
 module Raven
   class SingleExceptionInterface < Interface
-    attr_accessor :type
-    attr_accessor :value
-    attr_accessor :module
-    attr_accessor :stacktrace
+    attr_accessor :type, :value, :module, :stacktrace
 
     def to_hash(*args)
       data = super(*args)

@@ -8,7 +8,7 @@ module Raven
     require 'raven/integrations/rails/backtrace_cleaner'
     require 'raven/integrations/rack'
 
-    initializer "raven.use_rack_middleware" do |app|
+    initializer 'raven.use_rack_middleware' do |app|
       app.config.middleware.insert 0, Raven::Rack
     end
 
@@ -16,11 +16,11 @@ module Raven
       ActiveSupport.on_load :action_controller do
         include Raven::Rails::ControllerMethods
         include Raven::Rails::ControllerTransaction
-        if ::Rails::VERSION::STRING >= "4.0.0"
+        if ::Rails::VERSION::STRING >= '4.0.0'
           Raven.safely_prepend(
-            "StreamingReporter",
-            :from => Raven::Rails::Overrides,
-            :to => ActionController::Live
+            'StreamingReporter',
+            from: Raven::Rails::Overrides,
+            to: ActionController::Live
           )
         end
       end
@@ -29,9 +29,9 @@ module Raven
     initializer 'raven.action_view' do
       ActiveSupport.on_load :action_view do
         Raven.safely_prepend(
-          "StreamingReporter",
-          :from => Raven::Rails::Overrides,
-          :to => ActionView::StreamingTemplateRenderer::Body
+          'StreamingReporter',
+          from: Raven::Rails::Overrides,
+          to: ActionView::StreamingTemplateRenderer::Body
         )
       end
     end
@@ -63,9 +63,9 @@ module Raven
         end
 
         Raven.safely_prepend(
-          "DebugExceptionsCatcher",
-          :from => Raven::Rails::Overrides,
-          :to => exceptions_class
+          'DebugExceptionsCatcher',
+          from: Raven::Rails::Overrides,
+          to: exceptions_class
         )
       end
     end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require "delayed_job"
+
+require 'delayed_job'
 
 module Sentry
   module DelayedJob
@@ -7,7 +8,7 @@ module Sentry
       # need to symbolize strings as keyword arguments in Ruby 2.4~2.6
       DELAYED_JOB_CONTEXT_KEY = :"Delayed-Job"
       ACTIVE_JOB_CONTEXT_KEY = :"Active-Job"
-      OP_NAME = "queue.delayed_job".freeze
+      OP_NAME = 'queue.delayed_job'
 
       callbacks do |lifecycle|
         lifecycle.around(:invoke_job) do |job, *args, &block|
@@ -18,9 +19,10 @@ module Sentry
             name = contexts.dig(ACTIVE_JOB_CONTEXT_KEY, :job_class) || contexts.dig(DELAYED_JOB_CONTEXT_KEY, :job_class)
             scope.set_transaction_name(name, source: :task)
             scope.set_contexts(**contexts)
-            scope.set_tags("delayed_job.queue" => job.queue, "delayed_job.id" => job.id.to_s)
+            scope.set_tags('delayed_job.queue' => job.queue, 'delayed_job.id' => job.id.to_s)
 
-            transaction = Sentry.start_transaction(name: scope.transaction_name, source: scope.transaction_source, op: OP_NAME)
+            transaction = Sentry.start_transaction(name: scope.transaction_name, source: scope.transaction_source,
+                                                   op: OP_NAME)
             scope.set_span(transaction) if transaction
 
             begin
@@ -50,7 +52,7 @@ module Sentry
           created_at: job.created_at,
           last_error: job.last_error&.byteslice(0..1000),
           handler: job.handler&.byteslice(0..1000),
-          job_class: compute_job_class(job.payload_object),
+          job_class: compute_job_class(job.payload_object)
         }
 
         if job.payload_object.respond_to?(:job_data)

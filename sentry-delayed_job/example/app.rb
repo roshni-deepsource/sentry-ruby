@@ -1,13 +1,13 @@
-require "pry"
-require "active_job"
-require "active_record"
-require "delayed_job"
-require "delayed_job_active_record"
-require "sentry-delayed_job"
+require 'pry'
+require 'active_job'
+require 'active_record'
+require 'delayed_job'
+require 'delayed_job_active_record'
+require 'sentry-delayed_job'
 # require "logger"
 
 # This connection will do for database-independent bug reports.
-ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
 # ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 ActiveRecord::Schema.define do
@@ -35,7 +35,7 @@ class MyJob < ActiveJob::Base
   self.queue_adapter = :delayed_job
 
   def perform
-    raise "foo"
+    raise 'foo'
   end
 end
 
@@ -45,7 +45,7 @@ enqueued_job = Delayed::Backend::ActiveRecord::Job.last
 
 begin
   enqueued_job.invoke_job
-rescue => e
+rescue StandardError => e
   puts("active job failed because of \"#{e.message}\"")
 end
 
@@ -61,8 +61,6 @@ enqueued_job = Delayed::Backend::ActiveRecord::Job.last
 
 begin
   enqueued_job.invoke_job
-rescue => e
+rescue StandardError => e
   puts("inline job failed because of \"#{e.message}\"")
 end
-
-

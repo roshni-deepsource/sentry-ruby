@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "sentry/breadcrumb"
+require 'sentry/breadcrumb'
 
 module Sentry
   class BreadcrumbBuffer

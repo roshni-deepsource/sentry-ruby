@@ -4,8 +4,8 @@ require 'logger'
 
 module Sentry
   class Logger < ::Logger
-    LOG_PREFIX = "** [Sentry] "
-    PROGNAME   = "sentry"
+    LOG_PREFIX = '** [Sentry] '
+    PROGNAME   = 'sentry'
 
     def initialize(*)
       super

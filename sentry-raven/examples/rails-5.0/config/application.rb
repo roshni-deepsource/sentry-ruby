@@ -13,7 +13,7 @@ module Rails50
     config.rails_activesupport_breadcrumbs = true
 
     # https://github.com/getsentry/raven-ruby/issues/494
-    config.exceptions_app = self.routes
+    config.exceptions_app = routes
 
     # With this enabled 'exceptions_app' isnt executed, so instead we
     # set ``config.consider_all_requests_local = false`` in development.
@@ -23,7 +23,7 @@ module Rails50
     require 'raven/breadcrumbs/logger'
 
     Raven.configure do |config|
-     config.dsn = 'https://6bca098db7ef423ab983e26e27255fe8:650b2fcf94f942fe9093f656b809a94e@app.getsentry.com/3825'
+      config.dsn = 'https://6bca098db7ef423ab983e26e27255fe8:650b2fcf94f942fe9093f656b809a94e@app.getsentry.com/3825'
     end
   end
 end

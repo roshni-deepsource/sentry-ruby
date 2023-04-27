@@ -6,13 +6,14 @@ module Sentry
     class << self
       def detect_release(project_root:, running_on_heroku:)
         detect_release_from_env ||
-        detect_release_from_git ||
-        detect_release_from_capistrano(project_root) ||
-        detect_release_from_heroku(running_on_heroku)
+          detect_release_from_git ||
+          detect_release_from_capistrano(project_root) ||
+          detect_release_from_heroku(running_on_heroku)
       end
 
       def detect_release_from_heroku(running_on_heroku)
         return unless running_on_heroku
+
         ENV['HEROKU_SLUG_COMMIT']
       end
 
@@ -28,7 +29,7 @@ module Sentry
       end
 
       def detect_release_from_git
-        Sentry.sys_command("git rev-parse --short HEAD") if File.directory?(".git")
+        Sentry.sys_command('git rev-parse --short HEAD') if File.directory?('.git')
       end
 
       def detect_release_from_env

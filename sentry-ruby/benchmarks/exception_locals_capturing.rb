@@ -2,7 +2,9 @@ require 'benchmark/ips'
 
 def raise_n_exceptions(n, with_sleep: false)
   n.times do |i|
-    raise "exception: #{i}" rescue nil
+    raise "exception: #{i}"
+  rescue StandardError
+    nil
   end
   sleep(0.05) if with_sleep
 end
@@ -37,11 +39,10 @@ end
 # raise 50 exceptions with tracepoint:     5332.8 i/s - 3.53x slower
 
 Benchmark.ips do |x|
-  x.report("raise 50 exceptions") { raise_n_exceptions(50) }
-  x.report("raise 50 exceptions with tracepoint") { raise_n_exceptions_with_tracepoint(50) }
+  x.report('raise 50 exceptions') { raise_n_exceptions(50) }
+  x.report('raise 50 exceptions with tracepoint') { raise_n_exceptions_with_tracepoint(50) }
   x.compare!
 end
-
 
 # Warming up --------------------------------------
 # (with 50ms sleep) raise 50 exceptions
@@ -59,7 +60,9 @@ end
 # (with 50ms sleep) raise 50 exceptions with tracepoint:       19.0 i/s - same-ish: difference falls within error
 
 Benchmark.ips do |x|
-  x.report("(with 50ms sleep) raise 50 exceptions") { raise_n_exceptions(50, with_sleep: true) }
-  x.report("(with 50ms sleep) raise 50 exceptions with tracepoint") { raise_n_exceptions_with_tracepoint(50, with_sleep: true) }
+  x.report('(with 50ms sleep) raise 50 exceptions') { raise_n_exceptions(50, with_sleep: true) }
+  x.report('(with 50ms sleep) raise 50 exceptions with tracepoint') do
+    raise_n_exceptions_with_tracepoint(50, with_sleep: true)
+  end
   x.compare!
 end
