@@ -9,8 +9,8 @@ module Sentry
   end
 end
 
-require "sentry/interfaces/exception"
-require "sentry/interfaces/request"
-require "sentry/interfaces/single_exception"
-require "sentry/interfaces/stacktrace"
-require "sentry/interfaces/threads"
+require 'sentry/interfaces/exception'
+require 'sentry/interfaces/request'
+require 'sentry/interfaces/single_exception'
+require 'sentry/interfaces/stacktrace'
+require 'sentry/interfaces/threads'

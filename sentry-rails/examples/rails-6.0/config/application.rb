@@ -18,7 +18,7 @@ module Rails60
     config.consider_all_requests_local = false
 
     # https://github.com/getsentry/raven-ruby/issues/494
-    config.exceptions_app = self.routes
+    config.exceptions_app = routes
 
     config.webpacker.check_yarn_integrity = false
     config.active_job.queue_adapter = :sidekiq

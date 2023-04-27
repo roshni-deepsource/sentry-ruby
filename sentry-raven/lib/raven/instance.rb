@@ -110,29 +110,29 @@ module Raven
         return false
       end
 
-      message_or_exc = obj.is_a?(String) ? "message" : "exception"
+      message_or_exc = obj.is_a?(String) ? 'message' : 'exception'
       options = options.deep_dup
       options[:configuration] = configuration
       options[:context] = context
       options[:breadcrumbs] = breadcrumbs
 
-      if evt = Event.send("from_" + message_or_exc, obj, options)
-        yield evt if block_given?
-        if configuration.async?
-          begin
-            # We have to convert to a JSON-like hash, because background job
-            # processors (esp ActiveJob) may not like weird types in the event hash
-            configuration.async.call(evt.to_json_compatible)
-          rescue => e
-            logger.error("async event sending failed: #{e.message}")
-            send_event(evt, make_hint(obj))
-          end
-        else
+      return unless (evt = Event.send('from_' + message_or_exc, obj, options))
+
+      yield evt if block_given?
+      if configuration.async?
+        begin
+          # We have to convert to a JSON-like hash, because background job
+          # processors (esp ActiveJob) may not like weird types in the event hash
+          configuration.async.call(evt.to_json_compatible)
+        rescue StandardError => e
+          logger.error("async event sending failed: #{e.message}")
           send_event(evt, make_hint(obj))
         end
-        Thread.current["sentry_#{object_id}_last_event_id".to_sym] = evt.id
-        evt
+      else
+        send_event(evt, make_hint(obj))
       end
+      Thread.current["sentry_#{object_id}_last_event_id".to_sym] = evt.id
+      evt
     end
 
     alias capture_message capture_type
@@ -178,11 +178,11 @@ module Raven
     def user_context(options = nil)
       original_user_context = context.user
 
-      if options
-        context.user = context.user.merge(options)
-      else
-        context.user = {}
-      end
+      context.user = if options
+                       context.user.merge(options)
+                     else
+                       {}
+                     end
 
       yield if block_given?
       context.user
@@ -243,7 +243,7 @@ module Raven
     end
 
     def make_hint(obj)
-      obj.is_a?(String) ? { :exception => nil, :message => obj } : { :exception => obj, :message => nil }
+      obj.is_a?(String) ? { exception: nil, message: obj } : { exception: obj, message: nil }
     end
   end
 end

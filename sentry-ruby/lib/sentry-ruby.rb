@@ -1,46 +1,44 @@
 # frozen_string_literal: true
 
-require "English"
-require "forwardable"
-require "time"
+require 'English'
+require 'forwardable'
+require 'time'
 
-require "sentry/version"
-require "sentry/exceptions"
-require "sentry/core_ext/object/deep_dup"
-require "sentry/utils/argument_checking_helper"
-require "sentry/utils/encoding_helper"
-require "sentry/utils/logging_helper"
-require "sentry/configuration"
-require "sentry/logger"
-require "sentry/event"
-require "sentry/error_event"
-require "sentry/transaction_event"
-require "sentry/span"
-require "sentry/transaction"
-require "sentry/hub"
-require "sentry/background_worker"
-require "sentry/session_flusher"
+require 'sentry/version'
+require 'sentry/exceptions'
+require 'sentry/core_ext/object/deep_dup'
+require 'sentry/utils/argument_checking_helper'
+require 'sentry/utils/encoding_helper'
+require 'sentry/utils/logging_helper'
+require 'sentry/configuration'
+require 'sentry/logger'
+require 'sentry/event'
+require 'sentry/error_event'
+require 'sentry/transaction_event'
+require 'sentry/span'
+require 'sentry/transaction'
+require 'sentry/hub'
+require 'sentry/background_worker'
+require 'sentry/session_flusher'
 
 [
-  "sentry/rake",
-  "sentry/rack",
+  'sentry/rake',
+  'sentry/rack'
 ].each do |lib|
-  begin
-    require lib
-  rescue LoadError
-  end
+  require lib
+rescue LoadError
 end
 
 module Sentry
-  META = { "name" => "sentry.ruby", "version" => Sentry::VERSION }.freeze
+  META = { 'name' => 'sentry.ruby', 'version' => Sentry::VERSION }.freeze
 
   CAPTURED_SIGNATURE = :@__sentry_captured
 
-  LOGGER_PROGNAME = "sentry".freeze
+  LOGGER_PROGNAME = 'sentry'
 
-  SENTRY_TRACE_HEADER_NAME = "sentry-trace".freeze
+  SENTRY_TRACE_HEADER_NAME = 'sentry-trace'
 
-  BAGGAGE_HEADER_NAME = "baggage".freeze
+  BAGGAGE_HEADER_NAME = 'baggage'
 
   THREAD_LOCAL = :sentry_hub
 
@@ -74,17 +72,11 @@ module Sentry
 
     # @!visibility private
     def register_patch(patch = nil, target = nil, &block)
-      if patch && block
-        raise ArgumentError.new("Please provide either a patch and its target OR a block, but not both")
-      end
+      raise ArgumentError, 'Please provide either a patch and its target OR a block, but not both' if patch && block
 
-      if block
-        registered_patches << block
-      else
-        registered_patches << proc do
-          target.send(:prepend, patch) unless target.ancestors.include?(patch)
-        end
-      end
+      registered_patches << (block || proc do
+                               target.send(:prepend, patch) unless target.ancestors.include?(patch)
+                             end)
     end
 
     # @!visibility private
@@ -142,6 +134,7 @@ module Sentry
     #   @!macro configuration
     def configuration
       return unless initialized?
+
       get_current_client.configuration
     end
 
@@ -149,6 +142,7 @@ module Sentry
     #   @!macro send_event
     def send_event(*args)
       return unless initialized?
+
       get_current_client.send_event(*args)
     end
 
@@ -174,6 +168,7 @@ module Sentry
     #   @!macro set_tags
     def set_tags(*args)
       return unless initialized?
+
       get_current_scope.set_tags(*args)
     end
 
@@ -181,6 +176,7 @@ module Sentry
     #   @!macro set_extras
     def set_extras(*args)
       return unless initialized?
+
       get_current_scope.set_extras(*args)
     end
 
@@ -188,6 +184,7 @@ module Sentry
     #   @!macro set_user
     def set_user(*args)
       return unless initialized?
+
       get_current_scope.set_user(*args)
     end
 
@@ -195,6 +192,7 @@ module Sentry
     #   @!macro set_context
     def set_context(*args)
       return unless initialized?
+
       get_current_scope.set_context(*args)
     end
 
@@ -204,7 +202,7 @@ module Sentry
     #
     # @yieldparam config [Configuration]
     # @return [void]
-    def init(&block)
+    def init
       config = Configuration.new
       yield(config) if block_given?
       config.detect_release
@@ -216,15 +214,9 @@ module Sentry
       @main_hub = hub
       @background_worker = Sentry::BackgroundWorker.new(config)
 
-      @session_flusher = if config.auto_session_tracking
-                           Sentry::SessionFlusher.new(config, client)
-                         else
-                           nil
-                         end
+      @session_flusher = (Sentry::SessionFlusher.new(config, client) if config.auto_session_tracking)
 
-      if config.include_local_variables
-        exception_locals_tp.enable
-      end
+      exception_locals_tp.enable if config.include_local_variables
 
       at_exit { close }
     end
@@ -244,9 +236,7 @@ module Sentry
         @session_flusher = nil
       end
 
-      if configuration&.include_local_variables
-        exception_locals_tp.disable
-      end
+      exception_locals_tp.disable if configuration&.include_local_variables
 
       @main_hub = nil
       Thread.current.thread_variable_set(THREAD_LOCAL, nil)
@@ -269,6 +259,7 @@ module Sentry
     # @return [String, nil]
     def csp_report_uri
       return unless initialized?
+
       configuration.csp_report_uri
     end
 
@@ -284,6 +275,7 @@ module Sentry
     # @return [Breadcrumb, nil]
     def add_breadcrumb(breadcrumb, **options)
       return unless initialized?
+
       get_current_hub.add_breadcrumb(breadcrumb, **options)
     end
 
@@ -305,6 +297,7 @@ module Sentry
     # @return [Client, nil]
     def get_current_client
       return unless initialized?
+
       get_current_hub.current_client
     end
 
@@ -313,6 +306,7 @@ module Sentry
     # @return [Scope, nil]
     def get_current_scope
       return unless initialized?
+
       get_current_hub.current_scope
     end
 
@@ -321,6 +315,7 @@ module Sentry
     # @return [void]
     def clone_hub_to_current_thread
       return unless initialized?
+
       Thread.current.thread_variable_set(THREAD_LOCAL, get_main_hub.clone)
     end
 
@@ -337,6 +332,7 @@ module Sentry
     # @return [void]
     def configure_scope(&block)
       return unless initialized?
+
       get_current_hub.configure_scope(&block)
     end
 
@@ -362,6 +358,7 @@ module Sentry
     # @return [void]
     def with_scope(&block)
       return yield unless initialized?
+
       get_current_hub.with_scope(&block)
     end
 
@@ -382,6 +379,7 @@ module Sentry
     # @return [void]
     def with_session_tracking(&block)
       return yield unless initialized?
+
       get_current_hub.with_session_tracking(&block)
     end
 
@@ -391,6 +389,7 @@ module Sentry
     # @return [Event, nil]
     def capture_exception(exception, **options, &block)
       return unless initialized?
+
       get_current_hub.capture_exception(exception, **options, &block)
     end
 
@@ -406,7 +405,7 @@ module Sentry
     #     1/0 #=> ZeroDivisionError will be reported and re-raised
     #   end
     #
-    def with_exception_captured(**options, &block)
+    def with_exception_captured(**options)
       yield
     rescue Exception => e
       capture_exception(e, **options)
@@ -419,6 +418,7 @@ module Sentry
     # @return [Event, nil]
     def capture_message(message, **options, &block)
       return unless initialized?
+
       get_current_hub.capture_message(message, **options, &block)
     end
 
@@ -427,6 +427,7 @@ module Sentry
     # @return [Event, nil]
     def capture_event(event)
       return unless initialized?
+
       get_current_hub.capture_event(event)
     end
 
@@ -435,6 +436,7 @@ module Sentry
     # @return [Transaction, nil]
     def start_transaction(**options)
       return unless initialized?
+
       get_current_hub.start_transaction(**options)
     end
 
@@ -453,6 +455,7 @@ module Sentry
     #
     def with_child_span(**attributes, &block)
       return yield(nil) unless Sentry.initialized?
+
       get_current_hub.with_child_span(**attributes, &block)
     end
 
@@ -461,6 +464,7 @@ module Sentry
     # @return [String, nil]
     def last_event_id
       return unless initialized?
+
       get_current_hub.last_event_id
     end
 
@@ -469,6 +473,7 @@ module Sentry
     # @return [Boolean]
     def exception_captured?(exc)
       return false unless initialized?
+
       !!exc.instance_variable_get(CAPTURED_SIGNATURE)
     end
 
@@ -493,7 +498,11 @@ module Sentry
 
     # @!visibility private
     def sys_command(command)
-      result = `#{command} 2>&1` rescue nil
+      result = begin
+        `#{command} 2>&1`
+      rescue StandardError
+        nil
+      end
       return if result.nil? || result.empty? || ($CHILD_STATUS && $CHILD_STATUS.exitstatus != 0)
 
       result.strip
@@ -517,6 +526,6 @@ module Sentry
 end
 
 # patches
-require "sentry/net/http"
-require "sentry/redis"
-require "sentry/puma"
+require 'sentry/net/http'
+require 'sentry/redis'
+require 'sentry/puma'

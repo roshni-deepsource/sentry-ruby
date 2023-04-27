@@ -18,10 +18,10 @@ module Rails60
     config.consider_all_requests_local = false
 
     # https://github.com/getsentry/raven-ruby/issues/494
-    config.exceptions_app = self.routes
+    config.exceptions_app = routes
 
     Raven.configure do |config|
-      config.breadcrumbs_logger = [:sentry_logger, :active_support_logger]
+      config.breadcrumbs_logger = %i[sentry_logger active_support_logger]
       config.dsn = 'https://2fb45f003d054a7ea47feb45898f7649@o447951.ingest.sentry.io/5434472'
     end
   end

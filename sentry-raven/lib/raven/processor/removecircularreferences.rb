@@ -1,6 +1,6 @@
 module Raven
   class Processor::RemoveCircularReferences < Processor
-    ELISION_STRING = "(...)".freeze
+    ELISION_STRING = '(...)'.freeze
     def process(value, visited = [])
       return ELISION_STRING if visited.include?(value.__id__)
 
@@ -8,7 +8,13 @@ module Raven
 
       case value
       when Hash
-        !value.frozen? ? value.merge!(value) { |_, v| process v, visited } : value.merge(value) { |_, v| process v, visited }
+        if !value.frozen?
+          value.merge!(value) { |_, v| process v, visited }
+        else
+          value.merge(value) do |_, v|
+            process v, visited
+          end
+        end
       when Array
         !value.frozen? ? value.map! { |v| process v, visited } : value.map { |v| process v, visited }
       else

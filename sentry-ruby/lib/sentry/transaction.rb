@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-require "sentry/baggage"
-require "sentry/profiler"
+require 'sentry/baggage'
+require 'sentry/profiler'
 
 module Sentry
   class Transaction < Span
     SENTRY_TRACE_REGEXP = Regexp.new(
-      "^[ \t]*" +  # whitespace
-      "([0-9a-f]{32})?" +  # trace_id
-      "-?([0-9a-f]{16})?" +  # span_id
-      "-?([01])?" +  # sampled
-      "[ \t]*$"  # whitespace
+      "^[ \t]*" + # whitespace
+      '([0-9a-f]{32})?' + # trace_id
+      '-?([0-9a-f]{16})?' + # span_id
+      '-?([01])?' + # sampled
+      "[ \t]*$" # whitespace
     )
-    UNLABELD_NAME = "<unlabeled transaction>".freeze
-    MESSAGE_PREFIX = "[Tracing]"
+    UNLABELD_NAME = '<unlabeled transaction>'
+    MESSAGE_PREFIX = '[Tracing]'
 
     # https://develop.sentry.dev/sdk/event-payloads/transaction/#transaction-annotations
-    SOURCES = %i(custom url route view component task)
+    SOURCES = %i[custom url route view component task]
 
     include LoggingHelper
 
@@ -141,7 +141,7 @@ module Sentry
       return nil if match.nil?
 
       trace_id, parent_span_id, sampled_flag = match[1..3]
-      parent_sampled = sampled_flag.nil? ? nil : sampled_flag != "0"
+      parent_sampled = sampled_flag.nil? ? nil : sampled_flag != '0'
 
       [trace_id, parent_span_id, parent_sampled]
     end
@@ -168,6 +168,7 @@ module Sentry
       @span_recorder.spans.each do |span|
         # span_recorder's first span is the current span, which should not be added to the copy's spans
         next if span == self
+
         copy.span_recorder.add(span.dup)
       end
 
@@ -179,7 +180,7 @@ module Sentry
     # @param value [Float] value of the measurement
     # @param unit [String] unit of the measurement
     # @return [void]
-    def set_measurement(name, value, unit = "")
+    def set_measurement(name, value, unit = '')
       @measurements[name] = { value: value, unit: unit }
     end
 
@@ -218,17 +219,17 @@ module Sentry
         return
       end
 
-      if sample_rate == 0.0 || sample_rate == false
+      if [0.0, false].include?(sample_rate)
         @sampled = false
         log_debug("#{MESSAGE_PREFIX} Discarding #{transaction_description} because traces_sampler returned 0 or false")
         return
       end
 
-      if sample_rate == true
-        @sampled = true
-      else
-        @sampled = Random.rand < sample_rate
-      end
+      @sampled = if sample_rate == true
+                   true
+                 else
+                   Random.rand < sample_rate
+                 end
 
       if @sampled
         log_debug("#{MESSAGE_PREFIX} Starting #{transaction_description}")
@@ -256,9 +257,7 @@ module Sentry
 
       super(end_timestamp: end_timestamp)
 
-      if @name.nil?
-        @name = UNLABELD_NAME
-      end
+      @name = UNLABELD_NAME if @name.nil?
 
       @profiler.stop
 
@@ -313,25 +312,25 @@ module Sentry
     private
 
     def generate_transaction_description
-      result = op.nil? ? "" : "<#{@op}> "
-      result += "transaction"
+      result = op.nil? ? '' : "<#{@op}> "
+      result += 'transaction'
       result += " <#{@name}>" if @name
       result
     end
 
     def populate_head_baggage
       items = {
-        "trace_id" => trace_id,
-        "sample_rate" => effective_sample_rate&.to_s,
-        "environment" => @environment,
-        "release" => @release,
-        "public_key" => @dsn&.public_key
+        'trace_id' => trace_id,
+        'sample_rate' => effective_sample_rate&.to_s,
+        'environment' => @environment,
+        'release' => @release,
+        'public_key' => @dsn&.public_key
       }
 
-      items["transaction"] = name unless source_low_quality?
+      items['transaction'] = name unless source_low_quality?
 
       user = @hub.current_scope&.user
-      items["user_segment"] = user["segment"] if user && user["segment"]
+      items['user_segment'] = user['segment'] if user && user['segment']
 
       items.compact!
       @baggage = Baggage.new(items, mutable: false)
@@ -351,9 +350,9 @@ module Sentry
       end
 
       def add(span)
-        if @spans.count < @max_length
-          @spans << span
-        end
+        return unless @spans.count < @max_length
+
+        @spans << span
       end
     end
   end

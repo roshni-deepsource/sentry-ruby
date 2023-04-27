@@ -2,13 +2,18 @@ require 'spec_helper'
 require 'raven/instance'
 
 RSpec.describe Raven::Instance do
-  let(:event) { Raven::Event.new(id: "event_id", configuration: configuration, context: Raven.context, breadcrumbs: Raven.breadcrumbs) }
-  let(:options) { { :key => "value" } }
-  let(:event_options) { options.merge(:context => subject.context, :configuration => configuration, breadcrumbs: Raven.breadcrumbs) }
+  let(:event) do
+    Raven::Event.new(id: 'event_id', configuration: configuration, context: Raven.context,
+                     breadcrumbs: Raven.breadcrumbs)
+  end
+  let(:options) { { key: 'value' } }
+  let(:event_options) do
+    options.merge(context: subject.context, configuration: configuration, breadcrumbs: Raven.breadcrumbs)
+  end
   let(:context) { nil }
   let(:configuration) do
     config = Raven::Configuration.new
-    config.dsn = "dummy://12345:67890@sentry.localdomain:3000/sentry/42"
+    config.dsn = 'dummy://12345:67890@sentry.localdomain:3000/sentry/42'
     config.logger = Logger.new(nil)
     config
   end
@@ -39,9 +44,9 @@ RSpec.describe Raven::Instance do
     describe 'as #capture_message' do
       before do
         expect(Raven::Event).to receive(:from_message).with(message, event_options)
-        expect(subject).to receive(:send_event).with(event, :exception => nil, :message => message)
+        expect(subject).to receive(:send_event).with(event, exception: nil, message: message)
       end
-      let(:message) { "Test message" }
+      let(:message) { 'Test message' }
 
       it 'sends the result of Event.capture_message' do
         subject.capture_type(message, options)
@@ -53,7 +58,7 @@ RSpec.describe Raven::Instance do
     end
 
     describe 'as #capture_message when async' do
-      let(:message) { "Test message" }
+      let(:message) { 'Test message' }
 
       around do |example|
         prior_async = subject.configuration.async
@@ -81,14 +86,14 @@ RSpec.describe Raven::Instance do
 
       it 'sends the result of Event.capture_exception' do
         expect(Raven::Event).to receive(:from_exception).with(exception, event_options)
-        expect(subject).to receive(:send_event).with(event, :exception => exception, :message => nil)
+        expect(subject).to receive(:send_event).with(event, exception: exception, message: nil)
 
         subject.capture_exception(exception, options)
       end
 
       it 'has an alias' do
         expect(Raven::Event).to receive(:from_exception).with(exception, event_options)
-        expect(subject).to receive(:send_event).with(event, :exception => exception, :message => nil)
+        expect(subject).to receive(:send_event).with(event, exception: exception, message: nil)
 
         subject.capture_exception(exception, options)
       end
@@ -97,7 +102,7 @@ RSpec.describe Raven::Instance do
     describe 'as #capture_exception when async' do
       let(:exception) { build_exception }
 
-      context "when async" do
+      context 'when async' do
         around do |example|
           prior_async = subject.configuration.async
           subject.configuration.async = proc { :ok }
@@ -119,7 +124,7 @@ RSpec.describe Raven::Instance do
         end
       end
 
-      context "when async raises an exception" do
+      context 'when async raises an exception' do
         around do |example|
           prior_async = subject.configuration.async
           subject.configuration.async = proc { raise TypeError }
@@ -170,18 +175,18 @@ RSpec.describe Raven::Instance do
     end
 
     it 'adds an annotation to the exception' do
-      expect(ivars(exception)).not_to include("@__raven_context")
+      expect(ivars(exception)).not_to include('@__raven_context')
       subject.annotate_exception(exception, {})
-      expect(ivars(exception)).to include("@__raven_context")
+      expect(ivars(exception)).to include('@__raven_context')
       expect(exception.instance_variable_get(:@__raven_context)).to \
         be_kind_of Hash
     end
 
     context 'when the exception already has context' do
       it 'does a deep merge of options' do
-        subject.annotate_exception(exception, :extra => { :language => "ruby" })
-        subject.annotate_exception(exception, :extra => { :job_title => "engineer" })
-        expected_hash = { :extra => { :language => "ruby", :job_title => "engineer" } }
+        subject.annotate_exception(exception, extra: { language: 'ruby' })
+        subject.annotate_exception(exception, extra: { job_title: 'engineer' })
+        expected_hash = { extra: { language: 'ruby', job_title: 'engineer' } }
         expect(exception.instance_variable_get(:@__raven_context)).to \
           eq expected_hash
       end
@@ -197,10 +202,10 @@ RSpec.describe Raven::Instance do
       "Raven #{Raven::VERSION} configured not to capture errors: DSN not set"
     end
 
-    context "when current environment is included in environments" do
+    context 'when current environment is included in environments' do
       before do
         subject.configuration.silence_ready = false
-        subject.configuration.environments = ["default"]
+        subject.configuration.environments = ['default']
       end
 
       it 'logs a ready message when configured' do
@@ -223,10 +228,10 @@ RSpec.describe Raven::Instance do
       end
     end
 
-    context "when current environment is not included in environments" do
+    context 'when current environment is not included in environments' do
       it "doesn't log any message" do
         subject.configuration.silence_ready = false
-        subject.configuration.environments = ["production"]
+        subject.configuration.environments = ['production']
         expect(subject.logger).not_to receive(:info)
         subject.report_status
       end
@@ -234,31 +239,31 @@ RSpec.describe Raven::Instance do
   end
 
   describe '.last_event_id' do
-    let(:message) { "Test message" }
+    let(:message) { 'Test message' }
 
     it 'sends the result of Event.capture_type' do
-      expect(subject).to receive(:send_event).with(event, :exception => nil, :message => message)
+      expect(subject).to receive(:send_event).with(event, exception: nil, message: message)
 
-      subject.capture_type("Test message", options)
+      subject.capture_type('Test message', options)
 
       expect(subject.last_event_id).to eq(event.id)
     end
   end
 
-  describe "#user_context" do
-    context "without a block" do
+  describe '#user_context' do
+    context 'without a block' do
       it "doesn't override previous data" do
         subject.user_context(id: 1)
-        subject.user_context(email: "test@example.com")
+        subject.user_context(email: 'test@example.com')
 
-        expect(subject.context.user).to eq({ id: 1, email: "test@example.com" })
+        expect(subject.context.user).to eq({ id: 1, email: 'test@example.com' })
       end
-      it "empties the user context when called without options" do
+      it 'empties the user context when called without options' do
         subject.context.user = { id: 1 }
         expect(subject.user_context).to eq({})
       end
 
-      it "empties the user context when called with nil" do
+      it 'empties the user context when called with nil' do
         subject.context.user = { id: 1 }
         expect(subject.user_context(nil)).to eq({})
       end
@@ -268,14 +273,14 @@ RSpec.describe Raven::Instance do
         expect(subject.user_context({})).to eq({ id: 1 })
       end
 
-      it "returns the user context when set" do
+      it 'returns the user context when set' do
         expected = { id: 1 }
         expect(subject.user_context(expected)).to eq(expected)
       end
     end
 
-    context "with a block" do
-      it "returns the user context when set" do
+    context 'with a block' do
+      it 'returns the user context when set' do
         expected = { id: 1 }
         user_context = subject.user_context(expected) do
           # do nothing
@@ -283,7 +288,7 @@ RSpec.describe Raven::Instance do
         expect(user_context).to eq expected
       end
 
-      it "sets user context only in the block" do
+      it 'sets user context only in the block' do
         subject.context.user = { id: 9999 }
 
         subject.user_context(id: 1) do
@@ -292,7 +297,7 @@ RSpec.describe Raven::Instance do
         expect(subject.context.user).to eq(id: 9999)
       end
 
-      it "resets with nested blocks" do
+      it 'resets with nested blocks' do
         subject.context.user = {}
         subject.user_context(id: 9999) do
           subject.user_context(email: 'foo@bar.com') do
@@ -305,19 +310,19 @@ RSpec.describe Raven::Instance do
     end
   end
 
-  describe "#tags_context" do
-    let(:default) { { :foo => :bar } }
-    let(:additional) { { :baz => :qux } }
+  describe '#tags_context' do
+    let(:default) { { foo: :bar } }
+    let(:additional) { { baz: :qux } }
 
     before do
       subject.context.tags = default
     end
 
-    it "returns the tags" do
+    it 'returns the tags' do
       expect(subject.tags_context).to eq default
     end
 
-    it "returns the tags" do
+    it 'returns the tags' do
       expect(subject.tags_context(additional)).to eq default.merge(additional)
     end
 
@@ -326,20 +331,20 @@ RSpec.describe Raven::Instance do
       expect(subject.context.tags).to eq default
     end
 
-    it "adds tags" do
+    it 'adds tags' do
       subject.tags_context(additional)
       expect(subject.context.tags).to eq default.merge(additional)
     end
 
     context 'when block given' do
-      it "returns the tags" do
+      it 'returns the tags' do
         tags = subject.tags_context(additional) do
           # do nothing
         end
         expect(tags).to eq default
       end
 
-      it "adds tags only in the block" do
+      it 'adds tags only in the block' do
         subject.tags_context(additional) do
           expect(subject.context.tags).to eq default.merge(additional)
         end
@@ -348,19 +353,19 @@ RSpec.describe Raven::Instance do
     end
   end
 
-  describe "#extra_context" do
-    let(:default) { { :foo => :bar } }
-    let(:additional) { { :baz => :qux } }
+  describe '#extra_context' do
+    let(:default) { { foo: :bar } }
+    let(:additional) { { baz: :qux } }
 
     before do
       subject.context.extra = default
     end
 
-    it "returns the extra" do
+    it 'returns the extra' do
       expect(subject.extra_context).to eq default
     end
 
-    it "returns the extra" do
+    it 'returns the extra' do
       expect(subject.extra_context(additional)).to eq default.merge(additional)
     end
 
@@ -369,20 +374,20 @@ RSpec.describe Raven::Instance do
       expect(subject.context.extra).to eq default
     end
 
-    it "adds extra" do
+    it 'adds extra' do
       subject.extra_context(additional)
       expect(subject.context.extra).to eq default.merge(additional)
     end
 
     context 'when block given' do
-      it "returns the extra" do
+      it 'returns the extra' do
         extra = subject.extra_context(additional) do
           # do nothing
         end
         expect(extra).to eq default
       end
 
-      it "adds extra only in the block" do
+      it 'adds extra only in the block' do
         subject.extra_context(additional) do
           expect(subject.context.extra).to eq default.merge(additional)
         end
@@ -391,14 +396,14 @@ RSpec.describe Raven::Instance do
     end
   end
 
-  describe "#rack_context" do
+  describe '#rack_context' do
     it "doesn't set anything if the context is empty" do
       subject.rack_context({})
       expect(subject.context.rack_env).to be_nil
     end
 
-    it "sets arbitrary rack context" do
-      subject.rack_context(:foo => :bar)
+    it 'sets arbitrary rack context' do
+      subject.rack_context(foo: :bar)
       expect(subject.context.rack_env[:foo]).to eq(:bar)
     end
   end

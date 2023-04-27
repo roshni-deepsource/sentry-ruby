@@ -1,30 +1,31 @@
 ActiveRecord::Schema.define do
-  create_table "active_storage_attachments", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "record_type", null: false
-    t.integer "record_id", null: false
-    t.integer "blob_id", null: false
-    t.datetime "created_at", null: false
-    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
-    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  create_table 'active_storage_attachments', force: :cascade do |t|
+    t.string 'name', null: false
+    t.string 'record_type', null: false
+    t.integer 'record_id', null: false
+    t.integer 'blob_id', null: false
+    t.datetime 'created_at', null: false
+    t.index ['blob_id'], name: 'index_active_storage_attachments_on_blob_id'
+    t.index %w[record_type record_id name blob_id], name: 'index_active_storage_attachments_uniqueness',
+                                                    unique: true
   end
 
-  create_table "active_storage_blobs", force: :cascade do |t|
-    t.string "key", null: false
-    t.string "filename", null: false
-    t.string "content_type"
-    t.text "metadata"
-    t.string "service_name"
-    t.bigint "byte_size", null: false
-    t.string "checksum", null: false
-    t.datetime "created_at", null: false
-    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  create_table 'active_storage_blobs', force: :cascade do |t|
+    t.string 'key', null: false
+    t.string 'filename', null: false
+    t.string 'content_type'
+    t.text 'metadata'
+    t.string 'service_name'
+    t.bigint 'byte_size', null: false
+    t.string 'checksum', null: false
+    t.datetime 'created_at', null: false
+    t.index ['key'], name: 'index_active_storage_blobs_on_key', unique: true
   end
 
-  create_table "active_storage_variant_records", force: :cascade do |t|
-    t.integer "blob_id", null: false
-    t.string "variation_digest", null: false
-    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  create_table 'active_storage_variant_records', force: :cascade do |t|
+    t.integer 'blob_id', null: false
+    t.string 'variation_digest', null: false
+    t.index %w[blob_id variation_digest], name: 'index_active_storage_variant_records_uniqueness', unique: true
   end
 
   create_table :posts, force: true do |t|
@@ -47,7 +48,7 @@ end
 class PostsController < ActionController::Base
   def index
     Post.all.to_a
-    raise "foo"
+    raise 'foo'
   end
 
   def show
@@ -62,7 +63,7 @@ class PostsController < ActionController::Base
     attach_params = {
       io: File.open(File.join(Rails.root, 'public', 'sentry-logo.png')),
       filename: 'sentry-logo.png',
-      service_name: "test"
+      service_name: 'test'
     }
 
     p.cover.attach(attach_params)
@@ -73,7 +74,7 @@ end
 
 class HelloController < ActionController::Base
   def exception
-    raise "An unhandled exception!"
+    raise 'An unhandled exception!'
   end
 
   def reporting
@@ -81,19 +82,19 @@ class HelloController < ActionController::Base
   end
 
   def view_exception
-    render inline: "<%= foo %>"
+    render inline: '<%= foo %>'
   end
 
   def view
-    render template: "test_template"
+    render template: 'test_template'
   end
 
   def world
-    render :plain => "Hello World!"
+    render plain: 'Hello World!'
   end
 
   def with_custom_instrumentation
-    custom_event = "custom.instrument"
+    custom_event = 'custom.instrument'
     ActiveSupport::Notifications.subscribe(custom_event) do |*args|
       data = args[-1]
       data += 1

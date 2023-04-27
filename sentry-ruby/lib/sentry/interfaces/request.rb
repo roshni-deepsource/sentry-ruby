@@ -2,13 +2,13 @@
 
 module Sentry
   class RequestInterface < Interface
-    REQUEST_ID_HEADERS = %w(action_dispatch.request_id HTTP_X_REQUEST_ID).freeze
-    CONTENT_HEADERS = %w(CONTENT_TYPE CONTENT_LENGTH).freeze
-    IP_HEADERS = [
-      "REMOTE_ADDR",
-      "HTTP_CLIENT_IP",
-      "HTTP_X_REAL_IP",
-      "HTTP_X_FORWARDED_FOR"
+    REQUEST_ID_HEADERS = %w[action_dispatch.request_id HTTP_X_REQUEST_ID].freeze
+    CONTENT_HEADERS = %w[CONTENT_TYPE CONTENT_LENGTH].freeze
+    IP_HEADERS = %w[
+      REMOTE_ADDR
+      HTTP_CLIENT_IP
+      HTTP_X_REAL_IP
+      HTTP_X_FORWARDED_FOR
     ].freeze
 
     # See Sentry server default limits at
@@ -83,31 +83,31 @@ module Sentry
 
     def filter_and_format_headers(env, send_default_pii)
       env.each_with_object({}) do |(key, value), memo|
-        begin
-          key = key.to_s # rack env can contain symbols
-          next memo['X-Request-Id'] ||= Utils::RequestId.read_from(env) if Utils::RequestId::REQUEST_ID_HEADERS.include?(key)
-          next if is_server_protocol?(key, value, env["SERVER_PROTOCOL"])
-          next if is_skippable_header?(key)
-          next if key == "HTTP_AUTHORIZATION" && !send_default_pii
-
-          # Rack stores headers as HTTP_WHAT_EVER, we need What-Ever
-          key = key.sub(/^HTTP_/, "")
-          key = key.split('_').map(&:capitalize).join('-')
-
-          memo[key] = Utils::EncodingHelper.encode_to_utf_8(value.to_s)
-        rescue StandardError => e
-          # Rails adds objects to the Rack env that can sometimes raise exceptions
-          # when `to_s` is called.
-          # See: https://github.com/rails/rails/blob/master/actionpack/lib/action_dispatch/middleware/remote_ip.rb#L134
-          Sentry.logger.warn(LOGGER_PROGNAME) { "Error raised while formatting headers: #{e.message}" }
-          next
+        key = key.to_s # rack env can contain symbols
+        if Utils::RequestId::REQUEST_ID_HEADERS.include?(key)
+          next memo['X-Request-Id'] ||= Utils::RequestId.read_from(env)
         end
+        next if is_server_protocol?(key, value, env['SERVER_PROTOCOL'])
+        next if is_skippable_header?(key)
+        next if key == 'HTTP_AUTHORIZATION' && !send_default_pii
+
+        # Rack stores headers as HTTP_WHAT_EVER, we need What-Ever
+        key = key.sub(/^HTTP_/, '')
+        key = key.split('_').map(&:capitalize).join('-')
+
+        memo[key] = Utils::EncodingHelper.encode_to_utf_8(value.to_s)
+      rescue StandardError => e
+        # Rails adds objects to the Rack env that can sometimes raise exceptions
+        # when `to_s` is called.
+        # See: https://github.com/rails/rails/blob/master/actionpack/lib/action_dispatch/middleware/remote_ip.rb#L134
+        Sentry.logger.warn(LOGGER_PROGNAME) { "Error raised while formatting headers: #{e.message}" }
+        next
       end
     end
 
     def is_skippable_header?(key)
       key.upcase != key || # lower-case envs aren't real http headers
-        key == "HTTP_COOKIE" || # Cookies don't go here, they go somewhere else
+        key == 'HTTP_COOKIE' || # Cookies don't go here, they go somewhere else
         !(key.start_with?('HTTP_') || CONTENT_HEADERS.include?(key))
     end
 
@@ -118,7 +118,7 @@ module Sentry
     # See: https://github.com/rack/rack/blob/028438f/lib/rack/handler/cgi.rb#L29
     def is_server_protocol?(key, value, protocol_version)
       rack_version = Gem::Version.new(::Rack.release)
-      return false if rack_version >= Gem::Version.new("3.0")
+      return false if rack_version >= Gem::Version.new('3.0')
 
       key == 'HTTP_VERSION' && value == protocol_version
     end

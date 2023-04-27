@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "net/http"
+require 'net/http'
 
 module Sentry
   # @api private
   module Net
     module HTTP
-      OP_NAME = "http.client"
-      BREADCRUMB_CATEGORY = "net.http"
+      OP_NAME = 'http.client'
+      BREADCRUMB_CATEGORY = 'net.http'
 
       # To explain how the entire thing works, we need to know how the original Net::HTTP#request works
       # Here's part of its definition. As you can see, it usually calls itself inside a #start block
@@ -77,12 +77,16 @@ module Sentry
 
       def from_sentry_sdk?
         dsn = Sentry.configuration.dsn
-        dsn && dsn.host == self.address
+        dsn && dsn.host == address
       end
 
       def extract_request_info(req)
         uri = req.uri || URI.parse("#{use_ssl? ? 'https' : 'http'}://#{address}#{req.path}")
-        url = "#{uri.scheme}://#{uri.host}#{uri.path}" rescue uri.to_s
+        url = begin
+          "#{uri.scheme}://#{uri.host}#{uri.path}"
+        rescue StandardError
+          uri.to_s
+        end
 
         result = { method: req.method, url: url }
 

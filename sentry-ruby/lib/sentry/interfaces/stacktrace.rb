@@ -20,12 +20,10 @@ module Sentry
       @frames.map(&:to_s)
     end
 
-    private
-
     # Not actually an interface, but I want to use the same style
     class Frame < Interface
       attr_accessor :abs_path, :context_line, :function, :in_app, :filename,
-                  :lineno, :module, :pre_context, :post_context, :vars
+                    :lineno, :module, :pre_context, :post_context, :vars
 
       def initialize(project_root, line)
         @project_root = project_root

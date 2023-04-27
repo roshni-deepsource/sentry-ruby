@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require "concurrent/utility/processor_counter"
+require 'concurrent/utility/processor_counter'
 
-require "sentry/utils/exception_cause_chain"
+require 'sentry/utils/exception_cause_chain'
 require 'sentry/utils/custom_inspection'
-require "sentry/dsn"
-require "sentry/release_detector"
-require "sentry/transport/configuration"
-require "sentry/linecache"
-require "sentry/interfaces/stacktrace_builder"
+require 'sentry/dsn'
+require 'sentry/release_detector'
+require 'sentry/transport/configuration'
+require 'sentry/linecache'
+require 'sentry/interfaces/stacktrace_builder'
 
 module Sentry
   class Configuration
@@ -141,7 +141,7 @@ module Sentry
     attr_accessor :include_local_variables
 
     # @deprecated Use {#include_local_variables} instead.
-    alias_method :capture_exception_frame_locals, :include_local_variables
+    alias capture_exception_frame_locals include_local_variables
 
     # @deprecated Use {#include_local_variables=} instead.
     def capture_exception_frame_locals=(value)
@@ -264,20 +264,20 @@ module Sentry
       'Sinatra::NotFound'
     ].freeze
 
-    RACK_ENV_WHITELIST_DEFAULT = %w(
+    RACK_ENV_WHITELIST_DEFAULT = %w[
       REMOTE_ADDR
       SERVER_NAME
       SERVER_PORT
-    ).freeze
+    ].freeze
 
     HEROKU_DYNO_METADATA_MESSAGE = "You are running on Heroku but haven't enabled Dyno Metadata. For Sentry's "\
-    "release detection to work correctly, please run `heroku labs:enable runtime-dyno-metadata`".freeze
+    'release detection to work correctly, please run `heroku labs:enable runtime-dyno-metadata`'
 
-    LOG_PREFIX = "** [Sentry] ".freeze
-    MODULE_SEPARATOR = "::".freeze
-    SKIP_INSPECTION_ATTRIBUTES = [:@linecache, :@stacktrace_builder]
+    LOG_PREFIX = '** [Sentry] '
+    MODULE_SEPARATOR = '::'
+    SKIP_INSPECTION_ATTRIBUTES = %i[@linecache @stacktrace_builder]
 
-    INSTRUMENTERS = [:sentry, :otel]
+    INSTRUMENTERS = %i[sentry otel]
 
     class << self
       # Post initialization callbacks are called at the end of initialization process
@@ -286,7 +286,7 @@ module Sentry
         @post_initialization_callbacks ||= []
       end
 
-    # allow extensions to add their hooks to the Configuration class
+      # allow extensions to add their hooks to the Configuration class
       def add_post_initialization_callback(&block)
         post_initialization_callbacks << block
       end
@@ -330,7 +330,11 @@ module Sentry
       self.enable_tracing = nil
 
       @transport = Transport::Configuration.new
-      @gem_specs = Hash[Gem::Specification.map { |spec| [spec.name, spec.version.to_s] }] if Gem::Specification.respond_to?(:map)
+      if Gem::Specification.respond_to?(:map)
+        @gem_specs = Hash[Gem::Specification.map do |spec|
+                            [spec.name, spec.version.to_s]
+                          end]
+      end
 
       run_post_initialization_callbacks
     end
@@ -342,16 +346,16 @@ module Sentry
     alias server= dsn=
 
     def async=(value)
-      check_callable!("async", value)
+      check_callable!('async', value)
 
       log_warn <<~MSG
 
-        sentry-ruby now sends events asynchronously by default with its background worker (supported since 4.1.0).
-        The `config.async` callback has become redundant while continuing to cause issues.
-        (The problems of `async` are detailed in https://github.com/getsentry/sentry-ruby/issues/1522)
+          sentry-ruby now sends events asynchronously by default with its background worker (supported since 4.1.0).
+          The `config.async` callback has become redundant while continuing to cause issues.
+          (The problems of `async` are detailed in https://github.com/getsentry/sentry-ruby/issues/1522)
 
-        Therefore, we encourage you to remove it and let the background worker take care of async job sending.
-      It's deprecation is planned in the next major release (6.0), which is scheduled around the 3rd quarter of 2022.
+          Therefore, we encourage you to remove it and let the background worker take care of async job sending.
+        It's deprecation is planned in the next major release (6.0), which is scheduled around the 3rd quarter of 2022.
       MSG
 
       @async = value
@@ -365,25 +369,25 @@ module Sentry
           Array(logger)
         end
 
-      require "sentry/breadcrumb/sentry_logger" if loggers.include?(:sentry_logger)
+      require 'sentry/breadcrumb/sentry_logger' if loggers.include?(:sentry_logger)
 
       @breadcrumbs_logger = logger
     end
 
     def before_send=(value)
-      check_callable!("before_send", value)
+      check_callable!('before_send', value)
 
       @before_send = value
     end
 
     def before_send_transaction=(value)
-      check_callable!("before_send_transaction", value)
+      check_callable!('before_send_transaction', value)
 
       @before_send_transaction = value
     end
 
     def before_breadcrumb=(value)
-      check_callable!("before_breadcrumb", value)
+      check_callable!('before_breadcrumb', value)
 
       @before_breadcrumb = value
     end
@@ -402,7 +406,9 @@ module Sentry
     end
 
     def profiles_sample_rate=(profiles_sample_rate)
-      log_info("Please make sure to include the 'stackprof' gem in your Gemfile to use Profiling with Sentry.") unless defined?(StackProf)
+      unless defined?(StackProf)
+        log_info("Please make sure to include the 'stackprof' gem in your Gemfile to use Profiling with Sentry.")
+      end
       @profiles_sample_rate = profiles_sample_rate
     end
 
@@ -454,12 +460,12 @@ module Sentry
 
     # @return [String, nil]
     def csp_report_uri
-      if dsn && dsn.valid?
-        uri = dsn.csp_report_uri
-        uri += "&sentry_release=#{CGI.escape(release)}" if release && !release.empty?
-        uri += "&sentry_environment=#{CGI.escape(environment)}" if environment && !environment.empty?
-        uri
-      end
+      return unless dsn && dsn.valid?
+
+      uri = dsn.csp_report_uri
+      uri += "&sentry_release=#{CGI.escape(release)}" if release && !release.empty?
+      uri += "&sentry_environment=#{CGI.escape(environment)}" if environment && !environment.empty?
+      uri
     end
 
     # @api private
@@ -479,25 +485,23 @@ module Sentry
 
       self.release ||= ReleaseDetector.detect_release(project_root: project_root, running_on_heroku: running_on_heroku?)
 
-      if running_on_heroku? && release.nil?
-        log_warn(HEROKU_DYNO_METADATA_MESSAGE)
-      end
-    rescue => e
-      log_error("Error detecting release", e, debug: debug)
+      log_warn(HEROKU_DYNO_METADATA_MESSAGE) if running_on_heroku? && release.nil?
+    rescue StandardError => e
+      log_error('Error detecting release', e, debug: debug)
     end
 
     # @api private
     def error_messages
       @errors = [@errors[0]] + @errors[1..-1].map(&:downcase) # fix case of all but first
-      @errors.join(", ")
+      @errors.join(', ')
     end
 
     private
 
     def check_callable!(name, value)
-      unless value == nil || value.respond_to?(:call)
-        raise ArgumentError, "#{name} must be callable (or nil to disable)"
-      end
+      return if value.nil? || value.respond_to?(:call)
+
+      raise ArgumentError, "#{name} must be callable (or nil to disable)"
     end
 
     def init_dsn(dsn_string)
@@ -522,7 +526,9 @@ module Sentry
 
     def matches_exception?(excluded_exception_class, incoming_exception)
       if inspect_exception_causes_for_exclusion?
-        Sentry::Utils::ExceptionCauseChain.exception_to_array(incoming_exception).any? { |cause| excluded_exception_class === cause }
+        Sentry::Utils::ExceptionCauseChain.exception_to_array(incoming_exception).any? do |cause|
+          excluded_exception_class === cause
+        end
       else
         excluded_exception_class === incoming_exception
       end
@@ -546,7 +552,7 @@ module Sentry
       if @dsn&.valid?
         true
       else
-        @errors << "DSN not set or not valid"
+        @errors << 'DSN not set or not valid'
         false
       end
     end
@@ -561,12 +567,16 @@ module Sentry
       else
         # Try to resolve the hostname to an FQDN, but fall back to whatever
         # the load name is.
-        Socket.gethostname || Socket.gethostbyname(hostname).first rescue server_name
+        begin
+          Socket.gethostname || Socket.gethostbyname(hostname).first
+        rescue StandardError
+          server_name
+        end
       end
     end
 
     def running_on_heroku?
-      File.directory?("/etc/heroku") && !ENV["CI"]
+      File.directory?('/etc/heroku') && !ENV['CI']
     end
 
     def run_post_initialization_callbacks

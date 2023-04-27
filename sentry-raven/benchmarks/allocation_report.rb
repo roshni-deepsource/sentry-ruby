@@ -4,14 +4,14 @@ require 'sentry-raven-without-integrations'
 
 Raven.configure do |config|
   config.logger = Logger.new(nil)
-  config.dsn = "dummy://12345:67890@sentry.localdomain:3000/sentry/42"
+  config.dsn = 'dummy://12345:67890@sentry.localdomain:3000/sentry/42'
 end
 
 exception = begin
-              1/0
-            rescue => e
-              e
-            end
+  1 / 0
+rescue StandardError => e
+  e
+end
 
 Raven.capture_exception(exception)
 

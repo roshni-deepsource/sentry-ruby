@@ -1,4 +1,4 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe Sentry::BackgroundWorker do
   let(:string_io) { StringIO.new }
@@ -9,13 +9,13 @@ RSpec.describe Sentry::BackgroundWorker do
     end
   end
 
-  describe "#initialize" do
-    context "when config.async is set" do
+  describe '#initialize' do
+    context 'when config.async is set' do
       before do
         configuration.async = proc {}
       end
 
-      it "initializes a background_worker with ImmediateExecutor" do
+      it 'initializes a background_worker with ImmediateExecutor' do
         worker = described_class.new(configuration)
 
         expect(string_io.string).to match(
@@ -26,8 +26,8 @@ RSpec.describe Sentry::BackgroundWorker do
       end
     end
 
-    context "when config.background_worker_threads is set" do
-      it "initializes a background worker with correct number of threads and queue size" do
+    context 'when config.background_worker_threads is set' do
+      it 'initializes a background worker with correct number of threads and queue size' do
         worker = described_class.new(configuration)
 
         expect(worker.max_queue).to eq(30)
@@ -35,12 +35,12 @@ RSpec.describe Sentry::BackgroundWorker do
       end
     end
 
-    context "when config.background_worker_threads is 0" do
+    context 'when config.background_worker_threads is 0' do
       before do
         configuration.background_worker_threads = 0
       end
 
-      it "initializes a background_worker with ImmediateExecutor" do
+      it 'initializes a background_worker with ImmediateExecutor' do
         worker = described_class.new(configuration)
 
         expect(string_io.string).to match(
@@ -51,7 +51,7 @@ RSpec.describe Sentry::BackgroundWorker do
       end
     end
 
-    context "when config.background_worker_threads is set" do
+    context 'when config.background_worker_threads is set' do
       before do
         configuration.background_worker_threads = 5
       end
@@ -68,14 +68,14 @@ RSpec.describe Sentry::BackgroundWorker do
     end
   end
 
-  describe "#perform" do
+  describe '#perform' do
     before { configuration.background_worker_threads = 1 }
 
-    it "logs error message when failed" do
+    it 'logs error message when failed' do
       worker = described_class.new(configuration)
 
       worker.perform do
-        1/0
+        1 / 0
       end
 
       sleep(0.1)
@@ -83,10 +83,10 @@ RSpec.describe Sentry::BackgroundWorker do
     end
   end
 
-  describe "#shutdown" do
+  describe '#shutdown' do
     before { configuration.background_worker_threads = 1 }
 
-    it "logs message about the shutdown" do
+    it 'logs message about the shutdown' do
       worker = described_class.new(configuration)
       worker.shutdown
 

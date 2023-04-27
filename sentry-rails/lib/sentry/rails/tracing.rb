@@ -41,14 +41,14 @@ module Sentry
       # so we need to retrieve the correct time this way
       def self.patch_active_support_notifications
         unless ::ActiveSupport::Notifications::Instrumenter.ancestors.include?(SentryNotificationExtension)
-          ::ActiveSupport::Notifications::Instrumenter.send(:prepend, SentryNotificationExtension)
+          ::ActiveSupport::Notifications::Instrumenter.prepend SentryNotificationExtension
         end
 
         SentryNotificationExtension.module_eval do
           def instrument(name, payload = {}, &block)
             # only inject timestamp to the events the SDK subscribes to
-            if Tracing.subscribed_tracing_events.include?(name)
-              payload[START_TIMESTAMP_NAME] = Time.now.utc.to_f if name[0] != "!" && payload.is_a?(Hash)
+            if Tracing.subscribed_tracing_events.include?(name) && (name[0] != '!' && payload.is_a?(Hash))
+              payload[START_TIMESTAMP_NAME] = Time.now.utc.to_f
             end
 
             super(name, payload, &block)
@@ -57,11 +57,11 @@ module Sentry
       end
 
       def self.remove_active_support_notifications_patch
-        if ::ActiveSupport::Notifications::Instrumenter.ancestors.include?(SentryNotificationExtension)
-          SentryNotificationExtension.module_eval do
-            def instrument(name, payload = {}, &block)
-              super
-            end
+        return unless ::ActiveSupport::Notifications::Instrumenter.ancestors.include?(SentryNotificationExtension)
+
+        SentryNotificationExtension.module_eval do
+          def instrument(name, payload = {}, &block)
+            super
           end
         end
       end

@@ -1,6 +1,7 @@
-require "spec_helper"
+require 'spec_helper'
 
-RSpec.describe Sentry::Client, type: :request, retry: 3, skip: Gem::Version.new(Rails.version) < Gem::Version.new('5.1.0') do
+RSpec.describe Sentry::Client, type: :request, retry: 3,
+                               skip: Gem::Version.new(Rails.version) < Gem::Version.new('5.1.0') do
   let(:transport) do
     Sentry.get_current_client.transport
   end
@@ -11,17 +12,17 @@ RSpec.describe Sentry::Client, type: :request, retry: 3, skip: Gem::Version.new(
 
   def send_events
     5.times.map do
-      Thread.new { Sentry::Rails.capture_message("msg") }
+      Thread.new { Sentry::Rails.capture_message('msg') }
     end.join
   end
 
-  context "when serialization triggers ActiveRecord queries" do
+  context 'when serialization triggers ActiveRecord queries' do
     before do
       make_basic_app do |config|
         config.background_worker_threads = 5
         # simulate connection being obtained during event serialization
         # this could happen when serializing breadcrumbs
-        config.before_send = lambda do |event, hint|
+        config.before_send = lambda do |event, _hint|
           Post.count
           event
         end

@@ -14,6 +14,6 @@ module Raven
   end
 end
 
-require "raven/transports/dummy"
-require "raven/transports/http"
-require "raven/transports/stdout"
+require 'raven/transports/dummy'
+require 'raven/transports/http'
+require 'raven/transports/stdout'

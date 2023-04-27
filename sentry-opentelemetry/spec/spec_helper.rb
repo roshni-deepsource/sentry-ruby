@@ -1,30 +1,30 @@
 # frozen_string_literal: true
 
-require "bundler/setup"
-require "pry"
-require "debug" if RUBY_VERSION.to_f >= 2.6
+require 'bundler/setup'
+require 'pry'
+require 'debug' if RUBY_VERSION.to_f >= 2.6
 
 require 'simplecov'
 
 SimpleCov.start do
-  project_name "sentry-opentelemetry"
-  root File.join(__FILE__, "../../../")
-  coverage_dir File.join(__FILE__, "../../coverage")
+  project_name 'sentry-opentelemetry'
+  root File.join(__FILE__, '../../../')
+  coverage_dir File.join(__FILE__, '../../coverage')
 end
 
-if ENV["CI"]
+if ENV['CI']
   require 'simplecov-cobertura'
   SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 end
 
-require "sentry-ruby"
-require "sentry/test_helper"
-require "sentry-opentelemetry"
-require "opentelemetry/sdk"
+require 'sentry-ruby'
+require 'sentry/test_helper'
+require 'sentry-opentelemetry'
+require 'opentelemetry/sdk'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = '.rspec_status'
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!

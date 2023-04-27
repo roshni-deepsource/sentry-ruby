@@ -8,9 +8,7 @@ module Raven
       end
 
       def send_event(_auth_header, data, _options = {})
-        unless configuration.sending_allowed?
-          logger.debug("Event not sent: #{configuration.error_messages}")
-        end
+        logger.debug("Event not sent: #{configuration.error_messages}") unless configuration.sending_allowed?
 
         $stdout.puts data
         $stdout.flush

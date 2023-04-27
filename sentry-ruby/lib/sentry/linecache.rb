@@ -30,8 +30,8 @@ module Sentry
     def getlines(path)
       @cache[path] ||= begin
         IO.readlines(path)
-                       rescue
-                         nil
+      rescue StandardError
+        nil
       end
     end
 

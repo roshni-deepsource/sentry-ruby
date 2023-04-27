@@ -16,38 +16,37 @@ module Sentry
       end
 
       class SentryReporter
-        OP_NAME = "queue.active_job".freeze
+        OP_NAME = 'queue.active_job'.freeze
 
         class << self
-          def record(job, &block)
+          def record(job)
             Sentry.with_scope do |scope|
-              begin
-                scope.set_transaction_name(job.class.name, source: :task)
-                transaction =
-                  if job.is_a?(::Sentry::SendEventJob)
-                    nil
-                  else
-                    Sentry.start_transaction(name: scope.transaction_name, source: scope.transaction_source, op: OP_NAME)
-                  end
-
-                scope.set_span(transaction) if transaction
-
-                yield.tap do
-                  finish_sentry_transaction(transaction, 200)
+              scope.set_transaction_name(job.class.name, source: :task)
+              transaction =
+                if job.is_a?(::Sentry::SendEventJob)
+                  nil
+                else
+                  Sentry.start_transaction(name: scope.transaction_name, source: scope.transaction_source,
+                                           op: OP_NAME)
                 end
-              rescue Exception => e # rubocop:disable Lint/RescueException
-                finish_sentry_transaction(transaction, 500)
 
-                Sentry::Rails.capture_exception(
-                  e,
-                  extra: sentry_context(job),
-                  tags: {
-                    job_id: job.job_id,
-                    provider_job_id: job.provider_job_id
-                  }
-                )
-                raise
+              scope.set_span(transaction) if transaction
+
+              yield.tap do
+                finish_sentry_transaction(transaction, 200)
               end
+            rescue Exception => e # rubocop:disable Lint/RescueException
+              finish_sentry_transaction(transaction, 500)
+
+              Sentry::Rails.capture_exception(
+                e,
+                extra: sentry_context(job),
+                tags: {
+                  job_id: job.job_id,
+                  provider_job_id: job.provider_job_id
+                }
+              )
+              raise
             end
           end
 
@@ -76,7 +75,11 @@ module Sentry
             when Array, Enumerable
               argument.map { |v| sentry_serialize_arguments(v) }
             when ->(v) { v.respond_to?(:to_global_id) }
-              argument.to_global_id.to_s rescue argument
+              begin
+                argument.to_global_id.to_s
+              rescue StandardError
+                argument
+              end
             else
               argument
             end

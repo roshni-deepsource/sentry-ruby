@@ -1,10 +1,10 @@
-require "active_support/backtrace_cleaner"
-require "active_support/core_ext/string/access"
+require 'active_support/backtrace_cleaner'
+require 'active_support/core_ext/string/access'
 
 module Raven
   class Rails
     class BacktraceCleaner < ActiveSupport::BacktraceCleaner
-      APP_DIRS_PATTERN = /\A(?:\.\/)?(?:app|config|lib|test|\(\w*\))/.freeze
+      APP_DIRS_PATTERN = %r{\A(?:\./)?(?:app|config|lib|test|\(\w*\))}.freeze
       RENDER_TEMPLATE_PATTERN = /:in `.*_\w+_{2,3}\d+_\d+'/.freeze
 
       def initialize
@@ -18,7 +18,7 @@ module Raven
         end
         add_filter do |line|
           if line =~ RENDER_TEMPLATE_PATTERN
-            line.sub(RENDER_TEMPLATE_PATTERN, "")
+            line.sub(RENDER_TEMPLATE_PATTERN, '')
           else
             line
           end

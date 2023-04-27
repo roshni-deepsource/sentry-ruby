@@ -8,9 +8,9 @@ module Raven
     # See Sentry server default limits at
     # https://github.com/getsentry/sentry/blob/master/src/sentry/conf/server.py
     MAX_MESSAGE_SIZE_IN_BYTES = 1024 * 8
-    REQUIRED_OPTION_KEYS = [:configuration, :context, :breadcrumbs].freeze
+    REQUIRED_OPTION_KEYS = %i[configuration context breadcrumbs].freeze
 
-    SDK = { "name" => "raven-ruby", "version" => Raven::VERSION }.freeze
+    SDK = { 'name' => 'raven-ruby', 'version' => Raven::VERSION }.freeze
 
     attr_accessor :id, :logger, :transaction, :server_name, :release, :modules,
                   :extra, :tags, :context, :configuration, :checksum,
@@ -22,7 +22,7 @@ module Raven
 
     def initialize(options)
       # Set some simple default values
-      self.id            = SecureRandom.uuid.delete("-")
+      self.id            = SecureRandom.uuid.delete('-')
       self.timestamp     = Time.now.utc
       self.level         = :error
       self.logger        = :ruby
@@ -38,7 +38,7 @@ module Raven
       self.tags          = {} # TODO: contexts
 
       unless REQUIRED_OPTION_KEYS.all? { |key| options.key?(key) }
-        raise "you must provide configuration, context, and breadcrumbs when initializing a Raven::Event"
+        raise 'you must provide configuration, context, and breadcrumbs when initializing a Raven::Event'
       end
 
       self.configuration = options[:configuration]
@@ -88,7 +88,8 @@ module Raven
 
     def message=(args)
       if args.is_a?(Array)
-        message, params = args[0], args[0..-1]
+        message = args[0]
+        params = args[0..-1]
       else
         message = args
       end
@@ -113,7 +114,7 @@ module Raven
     end
 
     def level=(new_level) # needed to meet the Sentry spec
-      @level = new_level.to_s == "warn" ? :warning : new_level
+      @level = new_level.to_s == 'warn' ? :warning : new_level
     end
 
     def interface(name, value = nil, &block)
@@ -133,9 +134,9 @@ module Raven
     end
 
     def to_hash
-      data = [:checksum, :environment, :event_id, :extra, :fingerprint, :level,
-              :logger, :message, :modules, :platform, :release, :sdk, :server_name,
-              :tags, :time_spent, :timestamp, :transaction, :user].each_with_object({}) do |att, memo|
+      data = %i[checksum environment event_id extra fingerprint level
+                logger message modules platform release sdk server_name
+                tags time_spent timestamp transaction user].each_with_object({}) do |att, memo|
         memo[att] = public_send(att) if public_send(att)
       end
 
@@ -227,19 +228,19 @@ module Raven
       end
       context.user[:ip_address] = calculate_real_ip_from_rack
 
-      if request_id = Utils::RequestId.read_from(context.rack_env)
-        context.tags[:request_id] = request_id
-      end
+      return unless (request_id = Utils::RequestId.read_from(context.rack_env))
+
+      context.tags[:request_id] = request_id
     end
 
     # When behind a proxy (or if the user is using a proxy), we can't use
     # REMOTE_ADDR to determine the Event IP, and must use other headers instead.
     def calculate_real_ip_from_rack
       Utils::RealIp.new(
-        :remote_addr => context.rack_env["REMOTE_ADDR"],
-        :client_ip => context.rack_env["HTTP_CLIENT_IP"],
-        :real_ip => context.rack_env["HTTP_X_REAL_IP"],
-        :forwarded_for => context.rack_env["HTTP_X_FORWARDED_FOR"]
+        remote_addr: context.rack_env['REMOTE_ADDR'],
+        client_ip: context.rack_env['HTTP_CLIENT_IP'],
+        real_ip: context.rack_env['HTTP_X_REAL_IP'],
+        forwarded_for: context.rack_env['HTTP_X_FORWARDED_FOR']
       ).calculate_ip
     end
 

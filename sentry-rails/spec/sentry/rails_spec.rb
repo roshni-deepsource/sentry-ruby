@@ -1,4 +1,4 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe Sentry::Rails, type: :request do
   let(:transport) do
@@ -9,16 +9,16 @@ RSpec.describe Sentry::Rails, type: :request do
     transport.events.last.to_json_compatible
   end
 
-  context "with simplist config" do
+  context 'with simplist config' do
     before do
       make_basic_app
     end
 
-    it "has version set" do
+    it 'has version set' do
       expect(described_class::VERSION).to be_a(String)
     end
 
-    it "inserts middleware to a correct position" do
+    it 'inserts middleware to a correct position' do
       app = Rails.application
       index_of_executor = app.middleware.find_index { |m| m == ActionDispatch::ShowExceptions }
       expect(app.middleware.find_index(Sentry::Rails::CaptureExceptions)).to eq(index_of_executor + 1)
@@ -26,7 +26,7 @@ RSpec.describe Sentry::Rails, type: :request do
       expect(app.middleware.find_index(Sentry::Rails::RescuedExceptionInterceptor)).to eq(index_of_debug_exceptions + 1)
     end
 
-    it "inserts a callback to disable background_worker for the runner mode" do
+    it 'inserts a callback to disable background_worker for the runner mode' do
       Sentry.configuration.background_worker_threads = 10
 
       Rails.application.load_runner
@@ -34,12 +34,12 @@ RSpec.describe Sentry::Rails, type: :request do
       expect(Sentry.configuration.background_worker_threads).to eq(0)
     end
 
-    describe "logger detection" do
-      it "sets Sentry.configuration.logger correctly" do
+    describe 'logger detection' do
+      it 'sets Sentry.configuration.logger correctly' do
         expect(Sentry.configuration.logger).to eq(Rails.logger)
       end
 
-      it "respects the logger set by user" do
+      it 'respects the logger set by user' do
         logger = ::Logger.new(nil)
 
         make_basic_app do |config|
@@ -58,7 +58,7 @@ RSpec.describe Sentry::Rails, type: :request do
       end
     end
 
-    it "sets Sentry.configuration.project_root correctly" do
+    it 'sets Sentry.configuration.project_root correctly' do
       expect(Sentry.configuration.project_root).to eq(Rails.root.to_s)
     end
 
@@ -66,32 +66,32 @@ RSpec.describe Sentry::Rails, type: :request do
       expect(Sentry.configuration.release).to eq('beta')
     end
 
-    it "sets transaction to ControllerName#method and sets correct source" do
-      get "/exception"
+    it 'sets transaction to ControllerName#method and sets correct source' do
+      get '/exception'
 
-      expect(transport.events.last.transaction).to eq("HelloController#exception")
+      expect(transport.events.last.transaction).to eq('HelloController#exception')
       expect(transport.events.last.transaction_info).to eq({ source: :view })
 
-      get "/posts"
+      get '/posts'
 
-      expect(transport.events.last.transaction).to eq("PostsController#index")
+      expect(transport.events.last.transaction).to eq('PostsController#index')
       expect(transport.events.last.transaction_info).to eq({ source: :view })
     end
 
-    it "sets correct request url" do
-      get "/exception"
+    it 'sets correct request url' do
+      get '/exception'
 
-      expect(event.dig("request", "url")).to eq("http://www.example.com/exception")
+      expect(event.dig('request', 'url')).to eq('http://www.example.com/exception')
     end
 
-    it "sets the error event id to env" do
-      get "/exception"
+    it 'sets the error event id to env' do
+      get '/exception'
 
-      expect(response.request.env["sentry.error_event_id"]).to eq(event["event_id"])
+      expect(response.request.env['sentry.error_event_id']).to eq(event['event_id'])
     end
   end
 
-  context "at exit" do
+  context 'at exit' do
     before do
       make_basic_app
       Rails.application.load_runner
@@ -121,14 +121,14 @@ RSpec.describe Sentry::Rails, type: :request do
       captured_messages.split("\n").last
     end
 
-    it "captures exception if exit code is non-zero" do
+    it 'captures exception if exit code is non-zero' do
       skip('fork not supported in jruby') if RUBY_PLATFORM == 'java'
       captured_message = capture_in_separate_process(exit_code: 1)
 
       expect(captured_message).to eq('exit')
     end
 
-    it "does not capture exception if exit code is zero" do
+    it 'does not capture exception if exit code is zero' do
       skip('fork not supported in jruby') if RUBY_PLATFORM == 'java'
       captured_message = capture_in_separate_process(exit_code: 0)
 
@@ -136,144 +136,144 @@ RSpec.describe Sentry::Rails, type: :request do
     end
   end
 
-  RSpec.shared_examples "report_rescued_exceptions" do
-    context "with report_rescued_exceptions = true" do
+  RSpec.shared_examples 'report_rescued_exceptions' do
+    context 'with report_rescued_exceptions = true' do
       before do
         Sentry.configuration.rails.report_rescued_exceptions = true
       end
 
-      it "captures exceptions" do
-        get "/exception"
+      it 'captures exceptions' do
+        get '/exception'
 
         expect(response.status).to eq(500)
 
-        expect(event["exception"]["values"][0]["type"]).to eq("RuntimeError")
-        expect(event["exception"]["values"][0]["value"]).to match("An unhandled exception!")
+        expect(event['exception']['values'][0]['type']).to eq('RuntimeError')
+        expect(event['exception']['values'][0]['value']).to match('An unhandled exception!')
       end
     end
 
-    context "with report_rescued_exceptions = false" do
+    context 'with report_rescued_exceptions = false' do
       before do
         Sentry.configuration.rails.report_rescued_exceptions = false
       end
 
       it "doesn't report rescued exceptions" do
-        get "/exception"
+        get '/exception'
 
         expect(transport.events.count).to eq(0)
       end
     end
   end
 
-  context "with development config" do
+  context 'with development config' do
     before do
-      make_basic_app do |config, app|
+      make_basic_app do |_config, app|
         app.config.consider_all_requests_local = true
       end
     end
 
-    include_examples "report_rescued_exceptions"
+    include_examples 'report_rescued_exceptions'
   end
 
-  context "with production config" do
+  context 'with production config' do
     before do
-      make_basic_app do |config, app|
+      make_basic_app do |_config, app|
         app.config.consider_all_requests_local = false
       end
     end
 
-    include_examples "report_rescued_exceptions"
+    include_examples 'report_rescued_exceptions'
 
     it "doesn't do anything on a normal route" do
-      get "/"
+      get '/'
 
       expect(response.status).to eq(200)
       expect(transport.events.size).to eq(0)
     end
 
-    it "excludes commonly seen exceptions (like RecordNotFound)" do
-      get "/not_found"
+    it 'excludes commonly seen exceptions (like RecordNotFound)' do
+      get '/not_found'
 
       expect(response.status).to eq(400)
       expect(transport.events).to be_empty
     end
 
-    it "captures exceptions" do
-      get "/exception"
+    it 'captures exceptions' do
+      get '/exception'
 
       expect(response.status).to eq(500)
 
-      expect(event["exception"]["values"][0]["type"]).to eq("RuntimeError")
-      expect(event["exception"]["values"][0]["value"]).to match("An unhandled exception!")
-      expect(event["sdk"]).to eq("name" => "sentry.ruby.rails", "version" => Sentry::Rails::VERSION)
+      expect(event['exception']['values'][0]['type']).to eq('RuntimeError')
+      expect(event['exception']['values'][0]['value']).to match('An unhandled exception!')
+      expect(event['sdk']).to eq('name' => 'sentry.ruby.rails', 'version' => Sentry::Rails::VERSION)
     end
 
-    it "filters exception backtrace with custom BacktraceCleaner" do
-      get "/view_exception"
+    it 'filters exception backtrace with custom BacktraceCleaner' do
+      get '/view_exception'
 
-      traces = event.dig("exception", "values", 0, "stacktrace", "frames")
-      expect(traces.dig(-1, "filename")).to eq("inline template")
+      traces = event.dig('exception', 'values', 0, 'stacktrace', 'frames')
+      expect(traces.dig(-1, 'filename')).to eq('inline template')
 
       # we want to avoid something like "_inline_template__3014794444104730113_10960"
-      expect(traces.dig(-1, "function")).to be_nil
+      expect(traces.dig(-1, 'function')).to be_nil
     end
 
     it "doesn't filters exception backtrace if backtrace_cleanup_callback is overridden" do
       make_basic_app do |config|
-        config.backtrace_cleanup_callback = lambda { |backtrace| backtrace }
+        config.backtrace_cleanup_callback = ->(backtrace) { backtrace }
       end
 
-      get "/view_exception"
+      get '/view_exception'
 
-      traces = event.dig("exception", "values", 0, "stacktrace", "frames")
-      expect(traces.dig(-1, "filename")).to eq("inline template")
-      expect(traces.dig(-1, "function")).not_to be_nil
+      traces = event.dig('exception', 'values', 0, 'stacktrace', 'frames')
+      expect(traces.dig(-1, 'filename')).to eq('inline template')
+      expect(traces.dig(-1, 'function')).not_to be_nil
     end
 
-    context "with config.exceptions_app = self.routes" do
+    context 'with config.exceptions_app = self.routes' do
       before do
-        make_basic_app do |config, app|
+        make_basic_app do |_config, app|
           app.config.exceptions_app = app.routes
         end
       end
 
-      it "sets transaction to ControllerName#method" do
-        get "/exception"
+      it 'sets transaction to ControllerName#method' do
+        get '/exception'
 
         expect(transport.events.count).to eq(1)
         last_event = transport.events.last
-        expect(last_event.transaction).to eq("HelloController#exception")
+        expect(last_event.transaction).to eq('HelloController#exception')
         expect(transport.events.last.transaction_info).to eq({ source: :view })
         expect(response.body).to match(last_event.event_id)
 
-        get "/posts"
+        get '/posts'
 
-        expect(transport.events.last.transaction).to eq("PostsController#index")
+        expect(transport.events.last.transaction).to eq('PostsController#index')
         expect(transport.events.last.transaction_info).to eq({ source: :view })
       end
 
-      it "sets correct request url" do
-        get "/exception"
+      it 'sets correct request url' do
+        get '/exception'
 
-        expect(event.dig("request", "url")).to eq("http://www.example.com/exception")
+        expect(event.dig('request', 'url')).to eq('http://www.example.com/exception')
       end
     end
   end
 
-  context "with trusted proxies set" do
+  context 'with trusted proxies set' do
     before do
-      make_basic_app do |config, app|
-        app.config.action_dispatch.trusted_proxies = ["5.5.5.5"]
+      make_basic_app do |_config, app|
+        app.config.action_dispatch.trusted_proxies = ['5.5.5.5']
       end
     end
 
-    it "sets Sentry.configuration.trusted_proxies correctly" do
-      expect(Sentry.configuration.trusted_proxies).to eq(["5.5.5.5"])
+    it 'sets Sentry.configuration.trusted_proxies correctly' do
+      expect(Sentry.configuration.trusted_proxies).to eq(['5.5.5.5'])
     end
   end
 
-  describe "error reporter integration", skip: Rails.version.to_f < 7.0 do
-    context "when config.register_error_subscriber = false (default)" do
+  describe 'error reporter integration', skip: Rails.version.to_f < 7.0 do
+    context 'when config.register_error_subscriber = false (default)' do
       before do
         make_basic_app
       end
@@ -289,14 +289,14 @@ RSpec.describe Sentry::Rails, type: :request do
       end
     end
 
-    context "when config.register_error_subscriber = true" do
+    context 'when config.register_error_subscriber = true' do
       before do
         make_basic_app do |config|
           config.rails.register_error_subscriber = true
         end
       end
 
-      it "registers Sentry::Rails::ErrorSubscriber to Rails" do
+      it 'registers Sentry::Rails::ErrorSubscriber to Rails' do
         Rails.error.report(Exception.new, handled: false)
 
         expect(transport.events.count).to eq(1)
@@ -306,9 +306,9 @@ RSpec.describe Sentry::Rails, type: :request do
         expect(transport.events.count).to eq(2)
       end
 
-      it "sets correct contextual data to the reported event" do
-        Rails.error.handle(severity: :info, context: { foo: "bar" }) do
-          1/0
+      it 'sets correct contextual data to the reported event' do
+        Rails.error.handle(severity: :info, context: { foo: 'bar' }) do
+          1 / 0
         end
 
         expect(transport.events.count).to eq(1)
@@ -316,18 +316,18 @@ RSpec.describe Sentry::Rails, type: :request do
         event = transport.events.first
 
         if Rails.version.to_f > 7.0
-          expect(event.tags).to eq({ handled: true, source: "application" })
+          expect(event.tags).to eq({ handled: true, source: 'application' })
         else
           expect(event.tags).to eq({ handled: true })
         end
 
         expect(event.level).to eq(:info)
-        expect(event.contexts).to include({ "rails.error" => { foo: "bar" }})
+        expect(event.contexts).to include({ 'rails.error' => { foo: 'bar' } })
       end
 
-      it "skips cache storage sources", skip: Rails.version.to_f < 7.1 do
-        Rails.error.handle(severity: :info, source: "mem_cache_store.active_support") do
-          1/0
+      it 'skips cache storage sources', skip: Rails.version.to_f < 7.1 do
+        Rails.error.handle(severity: :info, source: 'mem_cache_store.active_support') do
+          1 / 0
         end
 
         expect(transport.events.count).to eq(0)

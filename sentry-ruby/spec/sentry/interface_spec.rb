@@ -6,10 +6,10 @@ class TestInterface < Sentry::Interface
 end
 
 RSpec.describe Sentry::Interface do
-  it "serializes to a Hash" do
+  it 'serializes to a Hash' do
     interface = TestInterface.new
-    interface.some_attr = "test"
+    interface.some_attr = 'test'
 
-    expect(interface.to_hash).to eq(:some_attr => "test")
+    expect(interface.to_hash).to eq(some_attr: 'test')
   end
 end

@@ -7,7 +7,7 @@ module Raven
   class Backtrace
     # Handles backtrace parsing line by line
     class Line
-      RB_EXTENSION = ".rb"
+      RB_EXTENSION = '.rb'
       # regexp (optional leading X: on windows, or JRuby9000 class-prefix)
       RUBY_INPUT_FORMAT = /
         ^ \s* (?: [a-zA-Z]: | uri:classloader: )? ([^:]+ | <.*>):
@@ -16,7 +16,7 @@ module Raven
       /x.freeze
 
       # org.jruby.runtime.callsite.CachingCallSite.call(CachingCallSite.java:170)
-      JAVA_INPUT_FORMAT = /^(.+)\.([^\.]+)\(([^\:]+)\:(\d+)\)$/.freeze
+      JAVA_INPUT_FORMAT = /^(.+)\.([^.]+)\(([^:]+):(\d+)\)$/.freeze
 
       # The file portion of the line (such as app/models/user.rb)
       attr_reader :file
@@ -94,7 +94,9 @@ module Raven
     def self.parse(backtrace, opts = {})
       ruby_lines = backtrace.is_a?(Array) ? backtrace : backtrace.split(/\n\s*/)
 
-      ruby_lines = opts[:configuration].backtrace_cleanup_callback.call(ruby_lines) if opts[:configuration]&.backtrace_cleanup_callback
+      if opts[:configuration]&.backtrace_cleanup_callback
+        ruby_lines = opts[:configuration].backtrace_cleanup_callback.call(ruby_lines)
+      end
 
       filters = opts[:filters] || []
       filtered_lines = ruby_lines.to_a.map do |line|
@@ -115,7 +117,7 @@ module Raven
     end
 
     def inspect
-      "<Backtrace: " + lines.map(&:inspect).join(", ") + ">"
+      '<Backtrace: ' + lines.map(&:inspect).join(', ') + '>'
     end
 
     def to_s

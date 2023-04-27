@@ -2,11 +2,12 @@ module Sentry
   module Rails
     module ActionCableExtensions
       class ErrorHandler
-        OP_NAME = "websocket.server".freeze
+        OP_NAME = 'websocket.server'.freeze
 
         class << self
           def capture(connection, transaction_name:, extra_context: nil, &block)
             return block.call unless Sentry.initialized?
+
             # ActionCable's ConnectionStub (for testing) doesn't implement the exact same interfaces as Connection::Base.
             # One thing that's missing is `env`. So calling `connection.env` direclty will fail in test environments when `stub_connection` is used.
             # See https://github.com/getsentry/sentry-ruby/pull/1684 for more information.
@@ -14,7 +15,7 @@ module Sentry
 
             Sentry.with_scope do |scope|
               scope.set_rack_env(env)
-              scope.set_context("action_cable", extra_context) if extra_context
+              scope.set_context('action_cable', extra_context) if extra_context
               scope.set_transaction_name(transaction_name, source: :view)
               transaction = start_transaction(env, scope)
               scope.set_span(transaction) if transaction
@@ -33,11 +34,14 @@ module Sentry
           end
 
           def start_transaction(env, scope)
-            sentry_trace = env["HTTP_SENTRY_TRACE"]
-            baggage = env["HTTP_BAGGAGE"]
+            sentry_trace = env['HTTP_SENTRY_TRACE']
+            baggage = env['HTTP_BAGGAGE']
 
             options = { name: scope.transaction_name, source: scope.transaction_source, op: OP_NAME }
-            transaction = Sentry::Transaction.from_sentry_trace(sentry_trace, baggage: baggage, **options) if sentry_trace
+            if sentry_trace
+              transaction = Sentry::Transaction.from_sentry_trace(sentry_trace, baggage: baggage,
+                                                                                **options)
+            end
             Sentry.start_transaction(transaction: transaction, **options)
           end
 
@@ -80,7 +84,8 @@ module Sentry
           def sentry_capture(hook, &block)
             extra_context = { params: params }
 
-            ErrorHandler.capture(connection, transaction_name: "#{self.class.name}##{hook}", extra_context: extra_context, &block)
+            ErrorHandler.capture(connection,
+                                 transaction_name: "#{self.class.name}##{hook}", extra_context: extra_context, &block)
           end
         end
 
@@ -90,7 +95,8 @@ module Sentry
           def dispatch_action(action, data)
             extra_context = { params: params, data: data }
 
-            ErrorHandler.capture(connection, transaction_name: "#{self.class.name}##{action}", extra_context: extra_context) do
+            ErrorHandler.capture(connection, transaction_name: "#{self.class.name}##{action}",
+                                             extra_context: extra_context) do
               super
             end
           end

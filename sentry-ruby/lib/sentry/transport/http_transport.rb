@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require "net/http"
-require "zlib"
+require 'net/http'
+require 'zlib'
 
 module Sentry
   class HTTPTransport < Transport
-    GZIP_ENCODING = "gzip"
+    GZIP_ENCODING = 'gzip'
     GZIP_THRESHOLD = 1024 * 30
     CONTENT_TYPE = 'application/x-sentry-envelope'
 
     DEFAULT_DELAY = 60
-    RETRY_AFTER_HEADER = "retry-after"
-    RATE_LIMIT_HEADER = "x-sentry-rate-limits"
+    RETRY_AFTER_HEADER = 'retry-after'
+    RATE_LIMIT_HEADER = 'x-sentry-rate-limits'
     USER_AGENT = "sentry-ruby/#{Sentry::VERSION}"
 
     def initialize(*args)
@@ -22,7 +22,7 @@ module Sentry
     end
 
     def send_data(data)
-      encoding = ""
+      encoding = ''
 
       if should_compress?(data)
         data = Zlib.gzip(data)
@@ -43,13 +43,11 @@ module Sentry
       end
 
       if response.code.match?(/\A2\d{2}/)
-        if has_rate_limited_header?(response)
-          handle_rate_limited_response(response)
-        end
+        handle_rate_limited_response(response) if has_rate_limited_header?(response)
       else
         error_info = "the server responded with status #{response.code}"
 
-        if response.code == "429"
+        if response.code == '429'
           handle_rate_limited_response(response)
         else
           error_info += "\nbody: #{response.body}"
@@ -59,7 +57,7 @@ module Sentry
         raise Sentry::ExternalError, error_info
       end
     rescue SocketError => e
-      raise Sentry::ExternalError.new(e.message)
+      raise Sentry::ExternalError, e.message
     end
 
     private
@@ -70,9 +68,9 @@ module Sentry
 
     def handle_rate_limited_response(headers)
       rate_limits =
-        if rate_limits = headers[RATE_LIMIT_HEADER]
+        if (rate_limits = headers[RATE_LIMIT_HEADER])
           parse_rate_limit_header(rate_limits)
-        elsif retry_after = headers[RETRY_AFTER_HEADER]
+        elsif (retry_after = headers[RETRY_AFTER_HEADER])
           # although Sentry doesn't send a date string back
           # based on HTTP specification, this could be a date string (instead of an integer)
           retry_after = retry_after.to_i
@@ -84,10 +82,8 @@ module Sentry
         end
 
       rate_limits.each do |category, limit|
-        if current_limit = @rate_limits[category]
-          if current_limit < limit
-            @rate_limits[category] = limit
-          end
+        if (current_limit = @rate_limits[category])
+          @rate_limits[category] = limit if current_limit < limit
         else
           @rate_limits[category] = limit
         end
@@ -99,14 +95,14 @@ module Sentry
 
       result = {}
 
-      limits = rate_limit_header.split(",")
+      limits = rate_limit_header.split(',')
       limits.each do |limit|
         next if limit.nil? || limit.empty?
 
         begin
-          retry_after, categories = limit.strip.split(":").first(2)
+          retry_after, categories = limit.strip.split(':').first(2)
           retry_after = time + retry_after.to_i
-          categories = categories.split(";")
+          categories = categories.split(';')
 
           if categories.empty?
             result[nil] = retry_after
@@ -130,13 +126,14 @@ module Sentry
       server = URI(@dsn.server)
 
       connection =
-        if proxy = normalize_proxy(@transport_configuration.proxy)
-          ::Net::HTTP.new(server.hostname, server.port, proxy[:uri].hostname, proxy[:uri].port, proxy[:user], proxy[:password])
+        if (proxy = normalize_proxy(@transport_configuration.proxy))
+          ::Net::HTTP.new(server.hostname, server.port, proxy[:uri].hostname, proxy[:uri].port, proxy[:user],
+                          proxy[:password])
         else
           ::Net::HTTP.new(server.hostname, server.port, nil)
         end
 
-      connection.use_ssl = server.scheme == "https"
+      connection.use_ssl = server.scheme == 'https'
       connection.read_timeout = @transport_configuration.timeout
       connection.write_timeout = @transport_configuration.timeout if connection.respond_to?(:write_timeout)
       connection.open_timeout = @transport_configuration.open_timeout
@@ -168,7 +165,8 @@ module Sentry
         ca_file: @transport_configuration.ssl_ca_file
       }.merge(@transport_configuration.ssl || {})
 
-      configuration[:verify_mode] = configuration.delete(:verify) ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
+      configuration[:verify_mode] =
+configuration.delete(:verify) ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
       configuration
     end
   end

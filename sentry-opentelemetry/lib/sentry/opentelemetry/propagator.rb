@@ -3,7 +3,6 @@
 module Sentry
   module OpenTelemetry
     class Propagator
-
       FIELDS = [SENTRY_TRACE_HEADER_NAME, BAGGAGE_HEADER_NAME].freeze
 
       SENTRY_TRACE_KEY = ::OpenTelemetry::Context.create_key('sentry-trace')
