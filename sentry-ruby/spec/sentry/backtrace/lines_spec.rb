@@ -1,4 +1,4 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe Sentry::Backtrace::Line do
   before do
@@ -16,26 +16,26 @@ RSpec.describe Sentry::Backtrace::Line do
     Regexp.new("^(#{project_root}/)?#{Sentry::Backtrace::APP_DIRS_PATTERN}")
   end
 
-  describe ".parse" do
-    it "parses app backtrace correctly" do
+  describe '.parse' do
+    it 'parses app backtrace correctly' do
       line = described_class.parse(unparsed_app_line, in_app_pattern)
 
-      expect(line.file).to eq("app.rb")
+      expect(line.file).to eq('app.rb')
       expect(line.number).to eq(12)
-      expect(line.method).to eq("/")
+      expect(line.method).to eq('/')
       expect(line.in_app_pattern).to eq(in_app_pattern)
       expect(line.module_name).to eq(nil)
       expect(line.in_app).to eq(true)
     end
 
-    it "parses gem backtrace correctly" do
+    it 'parses gem backtrace correctly' do
       line = described_class.parse(unparsed_gem_line, in_app_pattern)
 
       expect(line.file).to eq(
-        "/PATH_TO_RUBY/gems/2.7.0/gems/sinatra-2.1.0/lib/sinatra/base.rb"
+        '/PATH_TO_RUBY/gems/2.7.0/gems/sinatra-2.1.0/lib/sinatra/base.rb'
       )
       expect(line.number).to eq(1675)
-      expect(line.method).to eq("call")
+      expect(line.method).to eq('call')
       expect(line.in_app_pattern).to eq(in_app_pattern)
       expect(line.module_name).to eq(nil)
       expect(line.in_app).to eq(false)

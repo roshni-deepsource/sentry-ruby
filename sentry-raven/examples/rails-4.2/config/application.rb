@@ -1,4 +1,4 @@
-require File.expand_path('../boot', __FILE__)
+require File.expand_path('boot', __dir__)
 
 require 'rails/all'
 
@@ -26,7 +26,7 @@ module Rails42
     config.consider_all_requests_local = false
 
     # https://github.com/getsentry/raven-ruby/issues/494
-    config.exceptions_app = self.routes
+    config.exceptions_app = routes
 
     # With this enabled 'exceptions_app' isnt executed, so instead we
     # set ``config.consider_all_requests_local = false`` in development.

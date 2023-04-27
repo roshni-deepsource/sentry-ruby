@@ -12,22 +12,23 @@ module Sentry
   # This is an abstract class that defines the shared attributes of an event.
   # Please don't use it directly. The user-facing classes are its child classes.
   class Event
-    TYPE = "event"
+    TYPE = 'event'
     # These are readable attributes.
-    SERIALIZEABLE_ATTRIBUTES = %i(
+    SERIALIZEABLE_ATTRIBUTES = %i[
       event_id level timestamp
       release environment server_name modules
       message user tags contexts extra
       fingerprint breadcrumbs transaction transaction_info
       platform sdk type
-    )
+    ]
 
     # These are writable attributes.
-    WRITER_ATTRIBUTES = SERIALIZEABLE_ATTRIBUTES - %i(type timestamp level)
+    WRITER_ATTRIBUTES = SERIALIZEABLE_ATTRIBUTES - %i[type timestamp level]
 
     MAX_MESSAGE_SIZE_IN_BYTES = 1024 * 8
 
-    SKIP_INSPECTION_ATTRIBUTES = [:@modules, :@stacktrace_builder, :@send_default_pii, :@trusted_proxies, :@rack_env_whitelist]
+    SKIP_INSPECTION_ATTRIBUTES = %i[@modules @stacktrace_builder @send_default_pii @trusted_proxies
+                                    @rack_env_whitelist]
 
     include CustomInspection
 
@@ -42,7 +43,7 @@ module Sentry
     # @param message [String, nil]
     def initialize(configuration:, integration_meta: nil, message: nil)
       # Set some simple default values
-      @event_id      = SecureRandom.uuid.delete("-")
+      @event_id      = SecureRandom.uuid.delete('-')
       @timestamp     = Sentry.utc_now.iso8601
       @platform      = :ruby
       @type          = self.class::TYPE
@@ -67,7 +68,7 @@ module Sentry
       @stacktrace_builder = configuration.stacktrace_builder
       @rack_env_whitelist = configuration.rack_env_whitelist
 
-      @message = (message || "").byteslice(0..MAX_MESSAGE_SIZE_IN_BYTES)
+      @message = (message || '').byteslice(0..MAX_MESSAGE_SIZE_IN_BYTES)
     end
 
     class << self
@@ -81,7 +82,7 @@ module Sentry
 
         return message unless message.nil? || message.empty?
 
-        message = event_hash[:transaction] || event_hash["transaction"]
+        message = event_hash[:transaction] || event_hash['transaction']
 
         return message unless message.nil? || message.empty?
 
@@ -90,10 +91,10 @@ module Sentry
 
       # @!visibility private
       def get_message_from_exception(event_hash)
-        if exception = event_hash.dig(:exception, :values, 0)
+        if (exception = event_hash.dig(:exception, :values, 0))
           "#{exception[:type]}: #{exception[:value]}"
-        elsif exception = event_hash.dig("exception", "values", 0)
-          "#{exception["type"]}: #{exception["value"]}"
+        elsif (exception = event_hash.dig('exception', 'values', 0))
+          "#{exception['type']}: #{exception['value']}"
         end
       end
     end
@@ -115,7 +116,7 @@ module Sentry
     # @param level [String, Symbol]
     # @return [void]
     def level=(level) # needed to meet the Sentry spec
-      @level = level.to_s == "warn" ? :warning : level
+      @level = level.to_s == 'warn' ? :warning : level
     end
 
     # Sets the event's request environment data with RequestInterface.
@@ -123,17 +124,15 @@ module Sentry
     # @param env [Hash]
     # @return [void]
     def rack_env=(env)
-      unless request || env.empty?
-        add_request_interface(env)
+      return if request || env.empty?
 
-        if @send_default_pii
-          user[:ip_address] = calculate_real_ip_from_rack(env)
-        end
+      add_request_interface(env)
 
-        if request_id = Utils::RequestId.read_from(env)
-          tags[:request_id] = request_id
-        end
-      end
+      user[:ip_address] = calculate_real_ip_from_rack(env) if @send_default_pii
+
+      return unless (request_id = Utils::RequestId.read_from(env))
+
+      tags[:request_id] = request_id
     end
 
     # @return [Hash]
@@ -152,12 +151,13 @@ module Sentry
     private
 
     def add_request_interface(env)
-      @request = Sentry::RequestInterface.new(env: env, send_default_pii: @send_default_pii, rack_env_whitelist: @rack_env_whitelist)
+      @request = Sentry::RequestInterface.new(env: env, send_default_pii: @send_default_pii,
+                                              rack_env_whitelist: @rack_env_whitelist)
     end
 
     def serialize_attributes
       self.class::SERIALIZEABLE_ATTRIBUTES.each_with_object({}) do |att, memo|
-        if value = public_send(att)
+        if (value = public_send(att))
           memo[att] = value
         end
       end
@@ -167,11 +167,11 @@ module Sentry
     # REMOTE_ADDR to determine the Event IP, and must use other headers instead.
     def calculate_real_ip_from_rack(env)
       Utils::RealIp.new(
-        :remote_addr => env["REMOTE_ADDR"],
-        :client_ip => env["HTTP_CLIENT_IP"],
-        :real_ip => env["HTTP_X_REAL_IP"],
-        :forwarded_for => env["HTTP_X_FORWARDED_FOR"],
-        :trusted_proxies => @trusted_proxies
+        remote_addr: env['REMOTE_ADDR'],
+        client_ip: env['HTTP_CLIENT_IP'],
+        real_ip: env['HTTP_X_REAL_IP'],
+        forwarded_for: env['HTTP_X_FORWARDED_FOR'],
+        trusted_proxies: @trusted_proxies
       ).calculate_ip
     end
   end

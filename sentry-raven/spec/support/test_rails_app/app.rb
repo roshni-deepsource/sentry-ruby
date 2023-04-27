@@ -1,9 +1,9 @@
 require 'rails'
 # require "active_record/railtie"
-require "action_view/railtie"
-require "action_controller/railtie"
+require 'action_view/railtie'
+require 'action_controller/railtie'
 # require "action_mailer/railtie"
-require "active_job/railtie"
+require 'active_job/railtie'
 # require "action_cable/engine"
 # require "sprockets/railtie"
 # require "rails/test_unit/railtie"
@@ -16,34 +16,34 @@ end
 
 class HelloController < ActionController::Base
   def exception
-    raise "An unhandled exception!"
+    raise 'An unhandled exception!'
   end
 
   def view_exception
-    render inline: "<%= foo %>"
+    render inline: '<%= foo %>'
   end
 
   def world
-    render :plain => "Hello World!"
+    render plain: 'Hello World!'
   end
 end
 
 def make_basic_app
   app = Class.new(TestApp) do
     def self.name
-      "RailsTestApp"
+      'RailsTestApp'
     end
   end
 
   app.config.hosts = nil
-  app.config.secret_key_base = "test"
+  app.config.secret_key_base = 'test'
 
   # Usually set for us in production.rb
   app.config.eager_load = true
   app.routes.append do
-    get "/exception", :to => "hello#exception"
-    get "/view_exception", :to => "hello#view_exception"
-    root :to => "hello#world"
+    get '/exception', to: 'hello#exception'
+    get '/view_exception', to: 'hello#view_exception'
+    root to: 'hello#world'
   end
 
   app.initializer :configure_release do

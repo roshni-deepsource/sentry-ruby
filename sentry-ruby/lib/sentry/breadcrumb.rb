@@ -2,7 +2,7 @@
 
 module Sentry
   class Breadcrumb
-    DATA_SERIALIZATION_ERROR_MESSAGE = "[data were removed due to serialization issues]"
+    DATA_SERIALIZATION_ERROR_MESSAGE = '[data were removed due to serialization issues]'
 
     # @return [String, nil]
     attr_accessor :category
@@ -47,24 +47,22 @@ module Sentry
     # @param message [String]
     # @return [void]
     def message=(message)
-      @message = (message || "").byteslice(0..Event::MAX_MESSAGE_SIZE_IN_BYTES)
+      @message = (message || '').byteslice(0..Event::MAX_MESSAGE_SIZE_IN_BYTES)
     end
 
     private
 
     def serialized_data
-      begin
-        ::JSON.parse(::JSON.generate(@data))
-      rescue Exception => e
-        Sentry.logger.debug(LOGGER_PROGNAME) do
-          <<~MSG
-can't serialize breadcrumb data because of error: #{e}
-data: #{@data}
-          MSG
-        end
-
-        DATA_SERIALIZATION_ERROR_MESSAGE
+      ::JSON.parse(::JSON.generate(@data))
+    rescue Exception => e
+      Sentry.logger.debug(LOGGER_PROGNAME) do
+        <<~MSG
+          can't serialize breadcrumb data because of error: #{e}
+          data: #{@data}
+        MSG
       end
+
+      DATA_SERIALIZATION_ERROR_MESSAGE
     end
   end
 end

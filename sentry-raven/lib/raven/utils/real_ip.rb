@@ -8,12 +8,12 @@ module Raven
   module Utils
     class RealIp
       LOCAL_ADDRESSES = [
-        "127.0.0.1",      # localhost IPv4
-        "::1",            # localhost IPv6
-        "fc00::/7",       # private IPv6 range fc00::/7
-        "10.0.0.0/8",     # private IPv4 range 10.x.x.x
-        "172.16.0.0/12",  # private IPv4 range 172.16.0.0 .. 172.31.255.255
-        "192.168.0.0/16" # private IPv4 range 192.168.x.x
+        '127.0.0.1',      # localhost IPv4
+        '::1',            # localhost IPv6
+        'fc00::/7',       # private IPv6 range fc00::/7
+        '10.0.0.0/8',     # private IPv4 range 10.x.x.x
+        '172.16.0.0/12',  # private IPv4 range 172.16.0.0 .. 172.31.255.255
+        '192.168.0.0/16' # private IPv4 range 192.168.x.x
       ].map { |proxy| IPAddr.new(proxy) }
 
       attr_accessor :ip, :ip_addresses
@@ -43,14 +43,12 @@ module Raven
         # Split the comma-separated list into an array of strings
         ips = header ? header.strip.split(/[,\s]+/) : []
         ips.select do |ip|
-          begin
-            # Only return IPs that are valid according to the IPAddr#new method
-            range = IPAddr.new(ip).to_range
-            # we want to make sure nobody is sneaking a netmask in
-            range.begin == range.end
-          rescue ArgumentError
-            nil
-          end
+          # Only return IPs that are valid according to the IPAddr#new method
+          range = IPAddr.new(ip).to_range
+          # we want to make sure nobody is sneaking a netmask in
+          range.begin == range.end
+        rescue ArgumentError
+          nil
         end
       end
 

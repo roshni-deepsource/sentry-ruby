@@ -3,7 +3,7 @@ require 'raven/processor/removestacktrace'
 
 RSpec.describe Raven::Processor::RemoveStacktrace do
   before do
-    @client = double("client")
+    @client = double('client')
     @processor = Raven::Processor::RemoveStacktrace.new(@client)
   end
 
@@ -47,10 +47,10 @@ RSpec.describe Raven::Processor::RemoveStacktrace do
     it 'should remove stacktraces even when keys are strings' do
       data = Raven.capture_exception(build_exception).to_hash.deep_stringify_keys
 
-      expect(data["exception"]["values"][0]["stacktrace"]).to_not eq(nil)
+      expect(data['exception']['values'][0]['stacktrace']).to_not eq(nil)
       result = @processor.process(data)
 
-      expect(result["exception"]["values"][0]["stacktrace"]).to eq(nil)
+      expect(result['exception']['values'][0]['stacktrace']).to eq(nil)
     end
   end
 end

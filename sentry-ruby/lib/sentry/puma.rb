@@ -3,14 +3,14 @@
 module Sentry
   module Puma
     module Server
-      def lowlevel_error(e, env, status=500)
+      def lowlevel_error(e, env, status = 500)
         result = super
 
         begin
           Sentry.capture_exception(e) do |scope|
             scope.set_rack_env(env)
           end
-        rescue
+        rescue StandardError
           # if anything happens, we don't want to break the app
         end
 
@@ -20,6 +20,4 @@ module Sentry
   end
 end
 
-if defined?(Puma::Server)
-  Sentry.register_patch(Sentry::Puma::Server, Puma::Server)
-end
+Sentry.register_patch(Sentry::Puma::Server, Puma::Server) if defined?(Puma::Server)

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "sentry/scope"
-require "sentry/client"
-require "sentry/session"
+require 'sentry/scope'
+require 'sentry/client'
+require 'sentry/session'
 
 module Sentry
   class Hub
@@ -35,26 +35,26 @@ module Sentry
     def clone
       layer = current_layer
 
-      if layer
-        scope = layer.scope&.dup
+      return unless layer
 
-        Hub.new(layer.client, scope)
-      end
+      scope = layer.scope&.dup
+
+      Hub.new(layer.client, scope)
     end
 
     def bind_client(client)
       layer = current_layer
 
-      if layer
-        layer.client = client
-      end
+      return unless layer
+
+      layer.client = client
     end
 
     def configure_scope(&block)
       block.call(current_scope)
     end
 
-    def with_scope(&block)
+    def with_scope
       push_scope
       yield(current_scope)
     ensure
@@ -95,7 +95,7 @@ module Sentry
       transaction
     end
 
-    def with_child_span(instrumenter: :sentry, **attributes, &block)
+    def with_child_span(instrumenter: :sentry, **attributes)
       return yield(nil) unless instrumenter == configuration.instrumenter
 
       current_span = current_scope.get_span
@@ -162,7 +162,7 @@ module Sentry
 
       if block
         block.call(scope)
-      elsif custom_scope = options[:scope]
+      elsif (custom_scope = options[:scope])
         scope.update_from_scope(custom_scope)
       elsif !options.empty?
         scope.update_from_options(**options)
@@ -170,9 +170,7 @@ module Sentry
 
       event = current_client.capture_event(event, scope, hint)
 
-      if event && configuration.debug
-        configuration.log_debug(event.to_json_compatible)
-      end
+      configuration.log_debug(event.to_json_compatible) if event && configuration.debug
 
       @last_event_id = event&.event_id unless event.is_a?(Sentry::TransactionEvent)
       event
@@ -181,7 +179,7 @@ module Sentry
     def add_breadcrumb(breadcrumb, hint: {})
       return unless configuration.enabled_in_current_env?
 
-      if before_breadcrumb = current_client.configuration.before_breadcrumb
+      if (before_breadcrumb = current_client.configuration.before_breadcrumb)
         breadcrumb = before_breadcrumb.call(breadcrumb, hint)
       end
 
@@ -203,20 +201,23 @@ module Sentry
 
     def start_session
       return unless current_scope
+
       current_scope.set_session(Session.new)
     end
 
     def end_session
       return unless current_scope
+
       session = current_scope.session
       current_scope.set_session(nil)
 
       return unless session
+
       session.close
       Sentry.session_flusher.add_session(session)
     end
 
-    def with_session_tracking(&block)
+    def with_session_tracking
       return yield unless configuration.auto_session_tracking
 
       start_session

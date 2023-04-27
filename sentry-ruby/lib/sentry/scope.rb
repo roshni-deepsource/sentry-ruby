@@ -1,26 +1,26 @@
 # frozen_string_literal: true
 
-require "sentry/breadcrumb_buffer"
-require "etc"
+require 'sentry/breadcrumb_buffer'
+require 'etc'
 
 module Sentry
   class Scope
     include ArgumentCheckingHelper
 
-    ATTRIBUTES = [
-      :transaction_names,
-      :transaction_sources,
-      :contexts,
-      :extra,
-      :tags,
-      :user,
-      :level,
-      :breadcrumbs,
-      :fingerprint,
-      :event_processors,
-      :rack_env,
-      :span,
-      :session
+    ATTRIBUTES = %i[
+      transaction_names
+      transaction_sources
+      contexts
+      extra
+      tags
+      user
+      level
+      breadcrumbs
+      fingerprint
+      event_processors
+      rack_env
+      span
+      session
     ]
 
     attr_reader(*ATTRIBUTES)
@@ -49,9 +49,7 @@ module Sentry
       event.transaction = transaction_name if transaction_name
       event.transaction_info = { source: transaction_source } if transaction_source
 
-      if span
-        event.contexts[:trace] = span.get_trace_context
-      end
+      event.contexts[:trace] = span.get_trace_context if span
 
       event.fingerprint = fingerprint
       event.level = level
@@ -141,7 +139,7 @@ module Sentry
     # @param env [Hash]
     # @return [Hash]
     def set_rack_env(env)
-      env = env || {}
+      env ||= {}
       @rack_env = env
     end
 
@@ -196,7 +194,7 @@ module Sentry
         check_argument_type!(val, Hash)
       end
 
-      @contexts.merge!(contexts_hash) do |key, old, new|
+      @contexts.merge!(contexts_hash) do |_key, old, new|
         old.merge(new)
       end
     end
@@ -280,7 +278,7 @@ module Sentry
     private
 
     def set_default_value
-      @contexts = { :os => self.class.os_context, :runtime => self.class.runtime_context }
+      @contexts = { os: self.class.os_context, runtime: self.class.runtime_context }
       @extra = {}
       @tags = {}
       @user = {}
@@ -306,7 +304,7 @@ module Sentry
           begin
             uname = Etc.uname
             {
-              name: uname[:sysname] || RbConfig::CONFIG["host_os"],
+              name: uname[:sysname] || RbConfig::CONFIG['host_os'],
               version: uname[:version],
               build: uname[:release],
               kernel_version: uname[:version],
@@ -318,8 +316,8 @@ module Sentry
       # @return [Hash]
       def runtime_context
         @runtime_context ||= {
-          name: RbConfig::CONFIG["ruby_install_name"],
-          version: RUBY_DESCRIPTION || Sentry.sys_command("ruby -v")
+          name: RbConfig::CONFIG['ruby_install_name'],
+          version: RUBY_DESCRIPTION || Sentry.sys_command('ruby -v')
         }
       end
 
@@ -339,6 +337,5 @@ module Sentry
         global_event_processors << block
       end
     end
-
   end
 end

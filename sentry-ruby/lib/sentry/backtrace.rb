@@ -5,7 +5,7 @@ module Sentry
   class Backtrace
     # Handles backtrace parsing line by line
     class Line
-      RB_EXTENSION = ".rb"
+      RB_EXTENSION = '.rb'
       # regexp (optional leading X: on windows, or JRuby9000 class-prefix)
       RUBY_INPUT_FORMAT = /
         ^ \s* (?: [a-zA-Z]: | uri:classloader: )? ([^:]+ | <.*>):
@@ -14,7 +14,7 @@ module Sentry
       /x.freeze
 
       # org.jruby.runtime.callsite.CachingCallSite.call(CachingCallSite.java:170)
-      JAVA_INPUT_FORMAT = /^(.+)\.([^\.]+)\(([^\:]+)\:(\d+)\)$/.freeze
+      JAVA_INPUT_FORMAT = /^(.+)\.([^.]+)\(([^:]+):(\d+)\)$/.freeze
 
       # The file portion of the line (such as app/models/user.rb)
       attr_reader :file
@@ -86,9 +86,7 @@ module Sentry
 
       ruby_lines = backtrace_cleanup_callback.call(ruby_lines) if backtrace_cleanup_callback
 
-      in_app_pattern ||= begin
-        Regexp.new("^(#{project_root}/)?#{app_dirs_pattern || APP_DIRS_PATTERN}")
-      end
+      in_app_pattern ||= Regexp.new("^(#{project_root}/)?#{app_dirs_pattern || APP_DIRS_PATTERN}")
 
       lines = ruby_lines.to_a.map do |unparsed_line|
         Line.parse(unparsed_line, in_app_pattern)
@@ -102,7 +100,7 @@ module Sentry
     end
 
     def inspect
-      "<Backtrace: " + lines.map(&:inspect).join(", ") + ">"
+      '<Backtrace: ' + lines.map(&:inspect).join(', ') + '>'
     end
 
     def to_s

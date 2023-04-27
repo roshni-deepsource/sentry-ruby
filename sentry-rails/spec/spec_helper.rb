@@ -1,34 +1,33 @@
-require "bundler/setup"
-require "debug" if RUBY_VERSION.to_f >= 2.6 && RUBY_ENGINE == "ruby"
-require "pry"
+require 'bundler/setup'
+require 'debug' if RUBY_VERSION.to_f >= 2.6 && RUBY_ENGINE == 'ruby'
+require 'pry'
 
-require "sentry-ruby"
+require 'sentry-ruby'
 require 'rspec/retry'
 
 require 'simplecov'
 
 SimpleCov.start do
-  project_name "sentry-rails"
-  root File.join(__FILE__, "../../../")
-  coverage_dir File.join(__FILE__, "../../coverage")
+  project_name 'sentry-rails'
+  root File.join(__FILE__, '../../../')
+  coverage_dir File.join(__FILE__, '../../coverage')
 end
 
-
-if ENV["CI"]
+if ENV['CI']
   require 'simplecov-cobertura'
   SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 end
 
 # this already requires the sdk
-require "dummy/test_rails_app/app"
+require 'dummy/test_rails_app/app'
 # need to be required after rails is loaded from the above
-require "rspec/rails"
+require 'rspec/rails'
 
 DUMMY_DSN = 'http://12345:67890@sentry.localdomain/sentry/42'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = '.rspec_status'
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
@@ -55,7 +54,7 @@ RSpec.configure do |config|
 end
 
 def reload_send_event_job
-  Sentry.send(:remove_const, "SendEventJob") if defined?(Sentry::SendEventJob)
+  Sentry.send(:remove_const, 'SendEventJob') if defined?(Sentry::SendEventJob)
   expect(defined?(Sentry::SendEventJob)).to eq(nil)
-  load File.join(Dir.pwd, "app", "jobs", "sentry", "send_event_job.rb")
+  load File.join(Dir.pwd, 'app', 'jobs', 'sentry', 'send_event_job.rb')
 end

@@ -1,11 +1,11 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe Sentry::Rails::Tracing::ActiveRecordSubscriber, :subscriber do
   let(:transport) do
     Sentry.get_current_client.transport
   end
 
-  context "when transaction is sampled" do
+  context 'when transaction is sampled' do
     before do
       make_basic_app do |config|
         config.traces_sample_rate = 1.0
@@ -13,7 +13,7 @@ RSpec.describe Sentry::Rails::Tracing::ActiveRecordSubscriber, :subscriber do
       end
     end
 
-    it "records database query events" do
+    it 'records database query events' do
       transaction = Sentry::Transaction.new(sampled: true, hub: Sentry.get_current_hub)
       Sentry.get_current_scope.set_span(transaction)
 
@@ -24,17 +24,17 @@ RSpec.describe Sentry::Rails::Tracing::ActiveRecordSubscriber, :subscriber do
       expect(transport.events.count).to eq(1)
 
       transaction = transport.events.first.to_hash
-      expect(transaction[:type]).to eq("transaction")
+      expect(transaction[:type]).to eq('transaction')
       expect(transaction[:spans].count).to eq(1)
 
       span = transaction[:spans][0]
-      expect(span[:op]).to eq("db.sql.active_record")
-      expect(span[:description]).to eq("SELECT \"posts\".* FROM \"posts\"")
+      expect(span[:op]).to eq('db.sql.active_record')
+      expect(span[:description]).to eq('SELECT "posts".* FROM "posts"')
       expect(span[:tags].key?(:cached)).to eq(false)
       expect(span[:trace_id]).to eq(transaction.dig(:contexts, :trace, :trace_id))
     end
 
-    it "records database cached query events", skip: Rails.version.to_f < 5.1 do
+    it 'records database cached query events', skip: Rails.version.to_f < 5.1 do
       transaction = Sentry::Transaction.new(sampled: true, hub: Sentry.get_current_hub)
       Sentry.get_current_scope.set_span(transaction)
 
@@ -48,17 +48,17 @@ RSpec.describe Sentry::Rails::Tracing::ActiveRecordSubscriber, :subscriber do
       expect(transport.events.count).to eq(1)
 
       transaction = transport.events.first.to_hash
-      expect(transaction[:type]).to eq("transaction")
+      expect(transaction[:type]).to eq('transaction')
       expect(transaction[:spans].count).to eq(2)
 
       cached_query_span = transaction[:spans][1]
-      expect(cached_query_span[:op]).to eq("db.sql.active_record")
-      expect(cached_query_span[:description]).to eq("SELECT \"posts\".* FROM \"posts\"")
-      expect(cached_query_span[:tags]).to include({cached: true})
+      expect(cached_query_span[:op]).to eq('db.sql.active_record')
+      expect(cached_query_span[:description]).to eq('SELECT "posts".* FROM "posts"')
+      expect(cached_query_span[:tags]).to include({ cached: true })
     end
   end
 
-  context "when transaction is not sampled" do
+  context 'when transaction is not sampled' do
     before do
       make_basic_app
     end

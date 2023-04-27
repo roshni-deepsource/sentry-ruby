@@ -13,14 +13,17 @@ module Sentry
     # @yieldparam config [Configuration]
     # @return [void]
     def setup_sentry_test(&block)
-      raise "please make sure the SDK is initialized for testing" unless Sentry.initialized?
+      raise 'please make sure the SDK is initialized for testing' unless Sentry.initialized?
+
       copied_config = Sentry.configuration.dup
       # configure dummy DSN, so the events will not be sent to the actual service
       copied_config.dsn = DUMMY_DSN
       # set transport to DummyTransport, so we can easily intercept the captured events
       copied_config.transport.transport_class = Sentry::DummyTransport
       # make sure SDK allows sending under the current environment
-      copied_config.enabled_environments << copied_config.environment unless copied_config.enabled_environments.include?(copied_config.environment)
+      unless copied_config.enabled_environments.include?(copied_config.environment)
+        copied_config.enabled_environments << copied_config.environment
+      end
       # disble async event sending
       copied_config.background_worker_threads = 0
 
@@ -75,4 +78,3 @@ module Sentry
     end
   end
 end
-

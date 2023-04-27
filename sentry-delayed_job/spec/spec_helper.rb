@@ -1,32 +1,32 @@
-require "bundler/setup"
-require "pry"
+require 'bundler/setup'
+require 'pry'
 
-require "active_record"
-require "delayed_job"
-require "delayed_job_active_record"
+require 'active_record'
+require 'delayed_job'
+require 'delayed_job_active_record'
 
-require "sentry-ruby"
+require 'sentry-ruby'
 
 require 'simplecov'
 
 SimpleCov.start do
-  project_name "sentry-delayed_job"
-  root File.join(__FILE__, "../../../")
-  coverage_dir File.join(__FILE__, "../../coverage")
+  project_name 'sentry-delayed_job'
+  root File.join(__FILE__, '../../../')
+  coverage_dir File.join(__FILE__, '../../coverage')
 end
 
-if ENV["CI"]
+if ENV['CI']
   require 'simplecov-cobertura'
   SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 end
 
-require "sentry-delayed_job"
+require 'sentry-delayed_job'
 
 DUMMY_DSN = 'http://12345:67890@sentry.localdomain/sentry/42'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = '.rspec_status'
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
@@ -46,7 +46,7 @@ RSpec.configure do |config|
 end
 
 # This connection will do for database-independent bug reports.
-ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
 # ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 ActiveRecord::Schema.define do

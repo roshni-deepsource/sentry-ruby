@@ -1,4 +1,4 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe Sentry::BreadcrumbBuffer do
   before do
@@ -7,10 +7,10 @@ RSpec.describe Sentry::BreadcrumbBuffer do
 
   let(:crumb_1) do
     Sentry::Breadcrumb.new(
-      category: "foo",
-      message: "crumb_1",
+      category: 'foo',
+      message: 'crumb_1',
       data: {
-        name: "John",
+        name: 'John',
         age: 25
       }
     )
@@ -18,8 +18,8 @@ RSpec.describe Sentry::BreadcrumbBuffer do
 
   let(:crumb_2) do
     Sentry::Breadcrumb.new(
-      category: "bar",
-      message: "crumb_2",
+      category: 'bar',
+      message: 'crumb_2'
     )
   end
 
@@ -31,13 +31,13 @@ RSpec.describe Sentry::BreadcrumbBuffer do
     b.push(a)
 
     Sentry::Breadcrumb.new(
-      category: "baz",
-      message: "crumb_3",
+      category: 'baz',
+      message: 'crumb_3',
       data: a
     )
   end
 
-  describe "#record" do
+  describe '#record' do
     subject do
       described_class.new(1)
     end
@@ -55,7 +55,7 @@ RSpec.describe Sentry::BreadcrumbBuffer do
     end
   end
 
-  describe "#to_hash" do
+  describe '#to_hash' do
     it "doesn't break because of 1 problematic crumb" do
       subject.record(crumb_1)
       subject.record(crumb_2)
@@ -63,11 +63,11 @@ RSpec.describe Sentry::BreadcrumbBuffer do
 
       result = subject.to_hash[:values]
 
-      expect(result[0][:category]).to eq("foo")
-      expect(result[0][:data]).to eq({ "name" => "John", "age" => 25 })
-      expect(result[1][:category]).to eq("bar")
-      expect(result[2][:category]).to eq("baz")
-      expect(result[2][:data]).to eq("[data were removed due to serialization issues]")
+      expect(result[0][:category]).to eq('foo')
+      expect(result[0][:data]).to eq({ 'name' => 'John', 'age' => 25 })
+      expect(result[1][:category]).to eq('bar')
+      expect(result[2][:category]).to eq('baz')
+      expect(result[2][:data]).to eq('[data were removed due to serialization issues]')
     end
   end
 end

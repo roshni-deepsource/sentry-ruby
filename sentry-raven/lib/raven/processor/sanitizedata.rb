@@ -7,7 +7,7 @@ module Raven
     DEFAULT_FIELDS = %w(authorization password passwd secret ssn social(.*)?sec).freeze
     CREDIT_CARD_RE = /\b(?:3[47]\d|(?:4\d|5[1-5]|65)\d{2}|6011)\d{12}\b/.freeze
     QUERY_STRING = ['query_string', :query_string].freeze
-    JSON_STARTS_WITH = ["[", "{"].freeze
+    JSON_STARTS_WITH = ['[', '{'].freeze
 
     attr_accessor :sanitize_fields, :sanitize_credit_cards, :sanitize_fields_excluded
 

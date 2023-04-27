@@ -9,7 +9,7 @@ Bundler.require(*Rails.groups)
 module Rails50
   class Application < Rails::Application
     # https://github.com/getsentry/raven-ruby/issues/494
-    config.exceptions_app = self.routes
+    config.exceptions_app = routes
 
     # With this enabled 'exceptions_app' isnt executed, so instead we
     # set ``config.consider_all_requests_local = false`` in development.

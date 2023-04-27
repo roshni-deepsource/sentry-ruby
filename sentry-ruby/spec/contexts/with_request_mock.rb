@@ -1,7 +1,7 @@
 # because our patch on Net::HTTP is relatively low-level, we need to stub methods on socket level
 # which is not supported by most of the http mocking library
 # so we need to put something together ourselves
-RSpec.shared_context "with request mock" do
+RSpec.shared_context 'with request mock' do
   class FakeSocket < StringIO
     def setsockopt(*args); end
   end
@@ -18,7 +18,7 @@ RSpec.shared_context "with request mock" do
   end
 
   def build_fake_response(status, body: {}, headers: {})
-    Net::HTTPResponse.new("1.0", status, "").tap do |response|
+    Net::HTTPResponse.new('1.0', status, '').tap do |response|
       headers.each do |k, v|
         response[k] = v
       end
@@ -30,10 +30,10 @@ RSpec.shared_context "with request mock" do
 
   def stub_sentry_response
     # use bad request as an example is easier for verifying with error messages
-    stub_request(build_fake_response("400", body: { data: "bad sentry DSN public key" }))
+    stub_request(build_fake_response('400', body: { data: 'bad sentry DSN public key' }))
   end
 
-  def stub_normal_response(code: "200", &block)
+  def stub_normal_response(code: '200', &block)
     stub_request(build_fake_response(code), &block)
   end
 end

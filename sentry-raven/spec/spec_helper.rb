@@ -2,12 +2,12 @@ require 'pry'
 
 require 'simplecov'
 SimpleCov.start do
-  project_name "sentry-raven"
-  root File.join(__FILE__, "../../../")
-  coverage_dir File.join(__FILE__, "../../coverage")
+  project_name 'sentry-raven'
+  root File.join(__FILE__, '../../../')
+  coverage_dir File.join(__FILE__, '../../coverage')
 end
 
-if ENV["CI"] && ENV["CODECOV"] == "1"
+if ENV['CI'] && ENV['CODECOV'] == '1'
   require 'codecov'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
@@ -15,19 +15,19 @@ end
 require 'sentry_raven_without_integrations'
 
 Raven.configure do |config|
-  config.dsn = "dummy://12345:67890@sentry.localdomain/sentry/42"
-  config.encoding = "json"
+  config.dsn = 'dummy://12345:67890@sentry.localdomain/sentry/42'
+  config.encoding = 'json'
   config.silence_ready = true
   config.logger = Logger.new(nil)
 end
 
-if ENV["RAILS_VERSION"] && (ENV["RAILS_VERSION"].to_i == 0)
+if ENV['RAILS_VERSION'] && (ENV['RAILS_VERSION'].to_i == 0)
   RSpec.configure do |config|
-    config.filter_run_excluding :rails => true
+    config.filter_run_excluding rails: true
   end
 else
-  require File.dirname(__FILE__) + "/support/test_rails_app/app.rb"
-  require "rspec/rails"
+  require File.dirname(__FILE__) + '/support/test_rails_app/app.rb'
+  require 'rspec/rails'
 end
 
 RSpec.configure do |config|
@@ -37,15 +37,15 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 end
 
-RSpec.shared_examples "Raven default capture behavior" do
-  it "captures exceptions" do
+RSpec.shared_examples 'Raven default capture behavior' do
+  it 'captures exceptions' do
     expect { block }.to raise_error(captured_class)
 
     expect(Raven.client.transport.events.size).to eq(1)
 
     event = JSON.parse!(Raven.client.transport.events.first[1])
-    expect(event["exception"]["values"][0]["type"]).to eq(captured_class.name)
-    expect(event["exception"]["values"][0]["value"]).to eq(captured_message)
+    expect(event['exception']['values'][0]['type']).to eq(captured_class.name)
+    expect(event['exception']['values'][0]['value']).to eq(captured_message)
   end
 end
 
@@ -55,11 +55,11 @@ rescue ZeroDivisionError => e
   e
 end
 
-def build_exception_with_cause(cause = "exception a")
+def build_exception_with_cause(cause = 'exception a')
   begin
     raise cause
-  rescue
-    raise "exception b"
+  rescue StandardError
+    raise 'exception b'
   end
 rescue RuntimeError => e
   e
@@ -68,12 +68,12 @@ end
 def build_exception_with_two_causes
   begin
     begin
-      raise "exception a"
-    rescue
-      raise "exception b"
+      raise 'exception a'
+    rescue StandardError
+      raise 'exception b'
     end
-  rescue
-    raise "exception c"
+  rescue StandardError
+    raise 'exception c'
   end
 rescue RuntimeError => e
   e
@@ -82,9 +82,9 @@ end
 def build_exception_with_recursive_cause
   backtrace = []
 
-  exception = double("Exception")
+  exception = double('Exception')
   allow(exception).to receive(:cause).and_return(exception)
-  allow(exception).to receive(:message).and_return("example")
+  allow(exception).to receive(:message).and_return('example')
   allow(exception).to receive(:backtrace).and_return(backtrace)
   exception
 end

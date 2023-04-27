@@ -2,7 +2,7 @@ module Sentry
   module Sidekiq
     class ContextFilter
       ACTIVEJOB_RESERVED_PREFIX_REGEX = /^_aj_/.freeze
-      SIDEKIQ_NAME = "Sidekiq".freeze
+      SIDEKIQ_NAME = 'Sidekiq'.freeze
 
       attr_reader :context
 
@@ -20,7 +20,7 @@ module Sentry
       def filtered
         filtered_context = filter_context(context)
 
-        if job_entry = filtered_context.delete(:job)
+        if (job_entry = filtered_context.delete(:job))
           job_entry.each do |k, v|
             filtered_context[k] = v
           end
@@ -33,9 +33,9 @@ module Sentry
       end
 
       def transaction_name
-        class_name = (context["wrapped"] || context["class"] ||
-                      (context[:job] && (context[:job]["wrapped"] || context[:job]["class"]))
-                    )
+        class_name = (context['wrapped'] || context['class'] ||
+                      (context[:job] && (context[:job]['wrapped'] || context[:job]['class']))
+                     )
 
         if class_name
           "#{SIDEKIQ_NAME}/#{class_name}"
@@ -64,7 +64,7 @@ module Sentry
       end
 
       def filter_context_hash(key, value)
-        key = key.to_s.sub(ACTIVEJOB_RESERVED_PREFIX_REGEX, "") if key.match(ACTIVEJOB_RESERVED_PREFIX_REGEX)
+        key = key.to_s.sub(ACTIVEJOB_RESERVED_PREFIX_REGEX, '') if key.match(ACTIVEJOB_RESERVED_PREFIX_REGEX)
         [key, filter_context(value)]
       end
 

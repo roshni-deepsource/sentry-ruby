@@ -8,7 +8,7 @@ module Sentry
         result << "#{attr}=#{value.inspect}" if value
       end
 
-      "#<#{self.class.name} #{attr_strings.join(", ")}>"
+      "#<#{self.class.name} #{attr_strings.join(', ')}>"
     end
   end
 end

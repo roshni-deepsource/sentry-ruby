@@ -1,5 +1,5 @@
-require "sentry/rails/tracing/abstract_subscriber"
-require "sentry/rails/instrument_payload_cleanup_helper"
+require 'sentry/rails/tracing/abstract_subscriber'
+require 'sentry/rails/instrument_payload_cleanup_helper'
 
 module Sentry
   module Rails
@@ -7,16 +7,16 @@ module Sentry
       class ActionControllerSubscriber < AbstractSubscriber
         extend InstrumentPayloadCleanupHelper
 
-        EVENT_NAMES = ["process_action.action_controller"].freeze
-        OP_NAME = "view.process_action.action_controller".freeze
+        EVENT_NAMES = ['process_action.action_controller'].freeze
+        OP_NAME = 'view.process_action.action_controller'.freeze
 
         def self.subscribe!
           Sentry.logger.warn <<~MSG
-            DEPRECATION WARNING: sentry-rails has changed its approach on controller span recording and #{self.name} is now depreacted.
-            Please stop using or referencing #{self.name} as it will be removed in the next major release.
+            DEPRECATION WARNING: sentry-rails has changed its approach on controller span recording and #{name} is now depreacted.
+            Please stop using or referencing #{name} as it will be removed in the next major release.
           MSG
 
-          subscribe_to_event(EVENT_NAMES) do |event_name, duration, payload|
+          subscribe_to_event(EVENT_NAMES) do |_event_name, duration, payload|
             controller = payload[:controller]
             action = payload[:action]
 

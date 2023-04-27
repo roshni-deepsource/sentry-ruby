@@ -15,7 +15,7 @@ class HappyWorker
     Raven.breadcrumbs.record do |crumb|
       crumb.message = "I'm happy!"
     end
-    Raven.tags_context :mood => 'happy'
+    Raven.tags_context mood: 'happy'
   end
 end
 
@@ -26,7 +26,7 @@ class SadWorker
     Raven.breadcrumbs.record do |crumb|
       crumb.message = "I'm sad!"
     end
-    Raven.tags_context :mood => 'sad'
+    Raven.tags_context mood: 'sad'
 
     raise "I'm sad!"
   end
@@ -39,7 +39,7 @@ class VerySadWorker
     Raven.breadcrumbs.record do |crumb|
       crumb.message = "I'm very sad!"
     end
-    Raven.tags_context :mood => 'very sad'
+    Raven.tags_context mood: 'very sad'
 
     raise "I'm very sad!"
   end
@@ -49,11 +49,11 @@ class ReportingWorker
   include Sidekiq::Worker
 
   def perform
-    Raven.capture_message("I have something to say!")
+    Raven.capture_message('I have something to say!')
   end
 end
 
-RSpec.describe "Sidekiq full-stack integration" do
+RSpec.describe 'Sidekiq full-stack integration' do
   before :all do
     Sidekiq.logger = Logger.new(nil)
   end
@@ -65,7 +65,7 @@ RSpec.describe "Sidekiq full-stack integration" do
   end
 
   def process_job(klass)
-    msg = Sidekiq.dump_json("class" => klass)
+    msg = Sidekiq.dump_json('class' => klass)
     job = Sidekiq::BasicFetch::UnitOfWork.new('queue:default', msg)
     @processor.instance_variable_set(:'@job', job)
 
@@ -76,7 +76,7 @@ RSpec.describe "Sidekiq full-stack integration" do
 
   before do
     options =
-      if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new("6.0")
+      if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('6.0')
         Sidekiq[:queue] = ['default']
         Sidekiq
       else
@@ -87,50 +87,50 @@ RSpec.describe "Sidekiq full-stack integration" do
     @processor = manager.workers.first
   end
 
-  it "actually captures an exception" do
-    expect { process_job("SadWorker") }.to change { Raven.client.transport.events.size }.by(1)
+  it 'actually captures an exception' do
+    expect { process_job('SadWorker') }.to change { Raven.client.transport.events.size }.by(1)
 
     event = JSON.parse(Raven.client.transport.events.last[1])
-    expect(event["logentry"]["message"]).to eq("I'm sad!")
+    expect(event['logentry']['message']).to eq("I'm sad!")
   end
 
-  it "clears context from other workers and captures its own" do
-    process_job("HappyWorker")
-    process_job("SadWorker")
-
-    event = JSON.parse(Raven.client.transport.events.last[1])
-
-    expect(event["tags"]).to eq("mood" => "sad")
-    expect(event["transaction"]).to eq("Sidekiq/SadWorker")
-    expect(event["breadcrumbs"]["values"][0]["message"]).to eq("I'm sad!")
-  end
-
-  it "clears context after raising" do
-    process_job("SadWorker")
-    process_job("VerySadWorker")
+  it 'clears context from other workers and captures its own' do
+    process_job('HappyWorker')
+    process_job('SadWorker')
 
     event = JSON.parse(Raven.client.transport.events.last[1])
 
-    expect(event["tags"]).to eq("mood" => "very sad")
-    expect(event["breadcrumbs"]["values"][0]["message"]).to eq("I'm very sad!")
+    expect(event['tags']).to eq('mood' => 'sad')
+    expect(event['transaction']).to eq('Sidekiq/SadWorker')
+    expect(event['breadcrumbs']['values'][0]['message']).to eq("I'm sad!")
   end
 
-  it "captures exceptions raised during events" do
-    Sidekiq.options[:lifecycle_events][:startup] = [proc { raise "Uhoh!" }]
+  it 'clears context after raising' do
+    process_job('SadWorker')
+    process_job('VerySadWorker')
+
+    event = JSON.parse(Raven.client.transport.events.last[1])
+
+    expect(event['tags']).to eq('mood' => 'very sad')
+    expect(event['breadcrumbs']['values'][0]['message']).to eq("I'm very sad!")
+  end
+
+  it 'captures exceptions raised during events' do
+    Sidekiq.options[:lifecycle_events][:startup] = [proc { raise 'Uhoh!' }]
     @processor.fire_event(:startup)
 
     event = JSON.parse(Raven.client.transport.events.last[1])
 
-    expect(event["logentry"]["message"]).to eq "Uhoh!"
-    expect(event["transaction"]).to eq "Sidekiq/startup"
+    expect(event['logentry']['message']).to eq 'Uhoh!'
+    expect(event['transaction']).to eq 'Sidekiq/startup'
   end
 
-  it "has some context when capturing, even if no exception raised" do
-    process_job("ReportingWorker")
+  it 'has some context when capturing, even if no exception raised' do
+    process_job('ReportingWorker')
 
     event = JSON.parse(Raven.client.transport.events.last[1])
 
-    expect(event["logentry"]["message"]).to eq "I have something to say!"
-    expect(event["extra"]["sidekiq"]).to eq("class" => "ReportingWorker", "queue" => "default")
+    expect(event['logentry']['message']).to eq 'I have something to say!'
+    expect(event['extra']['sidekiq']).to eq('class' => 'ReportingWorker', 'queue' => 'default')
   end
 end

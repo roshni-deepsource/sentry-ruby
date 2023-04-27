@@ -1,4 +1,4 @@
-require "spec_helper"
+require 'spec_helper'
 
 if defined? ActiveJob
   class MyActiveJob < ActiveJob::Base
@@ -8,22 +8,22 @@ if defined? ActiveJob
     end
 
     def perform
-      raise TestError, "Boom!"
+      raise TestError, 'Boom!'
     end
   end
 
   class RescuedActiveJob < MyActiveJob
-    rescue_from TestError, :with => :rescue_callback
+    rescue_from TestError, with: :rescue_callback
 
     def rescue_callback(error); end
   end
 end
 
-RSpec.describe "ActiveJob integration", :rails => true do
+RSpec.describe 'ActiveJob integration', rails: true do
   before(:all) do
-    require "rspec/rails"
-    require "raven/integrations/rails"
-    require "raven/integrations/rails/active_job"
+    require 'rspec/rails'
+    require 'raven/integrations/rails'
+    require 'raven/integrations/rails/active_job'
   end
 
   before(:each) do
@@ -31,26 +31,26 @@ RSpec.describe "ActiveJob integration", :rails => true do
     MyActiveJob.queue_adapter = :inline
   end
 
-  it_should_behave_like "Raven default capture behavior" do
+  it_should_behave_like 'Raven default capture behavior' do
     let(:block) { MyActiveJob.new.perform_now }
     let(:captured_class) { MyActiveJob::TestError }
-    let(:captured_message) { "Boom!" }
+    let(:captured_message) { 'Boom!' }
   end
 
-  it "clears context" do
-    Raven.extra_context(:foo => :bar)
+  it 'clears context' do
+    Raven.extra_context(foo: :bar)
     job = MyActiveJob.new
 
     expect { job.perform_now }.to raise_error(MyActiveJob::TestError)
     event = JSON.parse!(Raven.client.transport.events.first[1])
 
-    expect(event["extra"]["foo"]).to eq("bar")
+    expect(event['extra']['foo']).to eq('bar')
 
     Raven.client.transport.events = []
     expect { job.perform_now }.to raise_error(MyActiveJob::TestError)
     event = JSON.parse!(Raven.client.transport.events.first[1])
 
-    expect(event["extra"]["foo"]).to eq(nil)
+    expect(event['extra']['foo']).to eq(nil)
   end
 
   context 'using rescue_from' do
@@ -65,8 +65,8 @@ RSpec.describe "ActiveJob integration", :rails => true do
     end
   end
 
-  context "when we are using an adapter which has a specific integration" do
-    it "does not trigger sentry and re-raises" do
+  context 'when we are using an adapter which has a specific integration' do
+    it 'does not trigger sentry and re-raises' do
       MyActiveJob.queue_adapter = :sidekiq
       job = MyActiveJob.new
 

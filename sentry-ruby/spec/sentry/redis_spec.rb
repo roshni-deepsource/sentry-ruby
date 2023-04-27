@@ -1,36 +1,36 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe Sentry::Redis do
-  let(:redis) { Redis.new(host: "127.0.0.1") }
+  let(:redis) { Redis.new(host: '127.0.0.1') }
 
-  context "with tracing enabled" do
+  context 'with tracing enabled' do
     before do
       perform_basic_setup do |config|
         config.traces_sample_rate = 1.0
       end
     end
 
-    context "config.send_default_pii = true" do
+    context 'config.send_default_pii = true' do
       before { Sentry.configuration.send_default_pii = true }
 
-      context "calling Redis SET command" do
-        let(:result) { redis.set("key", "value") }
+      context 'calling Redis SET command' do
+        let(:result) { redis.set('key', 'value') }
 
         it "records the Redis call's span with command and key" do
           transaction = Sentry.start_transaction
           Sentry.get_current_scope.set_span(transaction)
 
-          expect(result).to eq("OK")
+          expect(result).to eq('OK')
           request_span = transaction.span_recorder.spans.last
-          expect(request_span.op).to eq("db.redis")
+          expect(request_span.op).to eq('db.redis')
           expect(request_span.start_timestamp).not_to be_nil
           expect(request_span.timestamp).not_to be_nil
           expect(request_span.start_timestamp).not_to eq(request_span.timestamp)
-          expect(request_span.description).to eq("SET key value")
-          expect(request_span.data).to eq({ server: "127.0.0.1:6379/0" })
+          expect(request_span.description).to eq('SET key value')
+          expect(request_span.data).to eq({ server: '127.0.0.1:6379/0' })
         end
 
-        it "removes bad encoding keys and arguments gracefully" do
+        it 'removes bad encoding keys and arguments gracefully' do
           transaction = Sentry.start_transaction
           Sentry.get_current_scope.set_span(transaction)
 
@@ -40,7 +40,7 @@ RSpec.describe Sentry::Redis do
           request_span = transaction.span_recorder.spans.last
           description = request_span.description
 
-          expect(description).to eq("SET")
+          expect(description).to eq('SET')
 
           expect do
             JSON.generate(description)
@@ -49,27 +49,27 @@ RSpec.describe Sentry::Redis do
       end
     end
 
-    context "config.send_default_pii = false" do
+    context 'config.send_default_pii = false' do
       before { Sentry.configuration.send_default_pii = false }
 
-      context "calling Redis SET command" do
-        let(:result) { redis.set("key", "value") }
+      context 'calling Redis SET command' do
+        let(:result) { redis.set('key', 'value') }
 
         it "records the Redis call's span with command and key" do
           transaction = Sentry.start_transaction
           Sentry.get_current_scope.set_span(transaction)
 
-          expect(result).to eq("OK")
-          expect(transaction.span_recorder.spans.last.description).to eq("SET key")
+          expect(result).to eq('OK')
+          expect(transaction.span_recorder.spans.last.description).to eq('SET key')
         end
       end
     end
 
-    context "calling multiple Redis commands in a MULTI transaction" do
+    context 'calling multiple Redis commands in a MULTI transaction' do
       let(:result) do
         redis.multi do |multi|
-          multi.set("key", "value")
-          multi.incr("counter")
+          multi.set('key', 'value')
+          multi.incr('counter')
         end
       end
 
@@ -77,25 +77,25 @@ RSpec.describe Sentry::Redis do
         transaction = Sentry.start_transaction
         Sentry.get_current_scope.set_span(transaction)
 
-        expect(result).to contain_exactly("OK", kind_of(Numeric))
+        expect(result).to contain_exactly('OK', kind_of(Numeric))
         request_span = transaction.span_recorder.spans.last
-        expect(request_span.description).to eq("MULTI, SET key, INCR counter, EXEC")
+        expect(request_span.description).to eq('MULTI, SET key, INCR counter, EXEC')
       end
     end
   end
 
-  context "with tracing disabled" do
+  context 'with tracing disabled' do
     before do
       perform_basic_setup do |config|
         config.traces_sample_rate = 0.0
       end
     end
 
-    context "calling Redis SET command" do
-      let(:result) { redis.set("key", "value") }
+    context 'calling Redis SET command' do
+      let(:result) { redis.set('key', 'value') }
 
-      it "works as usual" do
-        expect(result).to eq("OK")
+      it 'works as usual' do
+        expect(result).to eq('OK')
       end
     end
   end

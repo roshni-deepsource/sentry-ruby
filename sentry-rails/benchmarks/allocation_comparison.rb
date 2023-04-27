@@ -1,7 +1,7 @@
 require 'benchmark/memory'
-require "sentry-ruby"
-require "sentry/benchmarks/benchmark_transport"
-require_relative "application"
+require 'sentry-ruby'
+require 'sentry/benchmarks/benchmark_transport'
+require_relative 'application'
 
 TestApp.configure do |config|
   config.middleware.delete ActionDispatch::DebugExceptions
@@ -14,14 +14,14 @@ app = create_app do |config|
   config.breadcrumbs_logger = [:active_support_logger]
 end
 
-app.get("/exception")
+app.get('/exception')
 
 Benchmark.memory do |x|
-  x.report("master") { app.get("/exception") }
-  x.report("branch") { app.get("/exception") }
+  x.report('master') { app.get('/exception') }
+  x.report('branch') { app.get('/exception') }
 
   x.compare!
-  x.hold!("/tmp/allocation_comparison.json")
+  x.hold!('/tmp/allocation_comparison.json')
 end
 
 # transport = Sentry.get_current_client.transport

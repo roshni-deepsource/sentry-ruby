@@ -6,7 +6,7 @@ module Raven
           exceptions = [exception]
           while exception.cause
             exception = exception.cause
-            break if exceptions.any? { |e| e.object_id == exception.object_id }
+            break if exceptions.any? { |e| e.equal?(exception) }
 
             exceptions << exception
           end

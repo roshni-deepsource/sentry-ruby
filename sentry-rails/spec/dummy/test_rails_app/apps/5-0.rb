@@ -18,7 +18,7 @@ end
 class PostsController < ActionController::Base
   def index
     Post.all.to_a
-    raise "foo"
+    raise 'foo'
   end
 
   def show
@@ -30,7 +30,7 @@ end
 
 class HelloController < ActionController::Base
   def exception
-    raise "An unhandled exception!"
+    raise 'An unhandled exception!'
   end
 
   def reporting
@@ -38,19 +38,19 @@ class HelloController < ActionController::Base
   end
 
   def view_exception
-    render inline: "<%= foo %>"
+    render inline: '<%= foo %>'
   end
 
   def view
-    render template: "test_template"
+    render template: 'test_template'
   end
 
   def world
-    render :plain => "Hello World!"
+    render plain: 'Hello World!'
   end
 
   def with_custom_instrumentation
-    custom_event = "custom.instrument"
+    custom_event = 'custom.instrument'
     ActiveSupport::Notifications.subscribe(custom_event) do |*args|
       data = args[-1]
       data += 1

@@ -9,9 +9,7 @@ Sentry.init do |config|
     should_skip = false
 
     handled_errors.each do |error|
-      if hint[:exception].is_a?(error)
-        should_skip = true
-      end
+      should_skip = true if hint[:exception].is_a?(error)
     end
 
     event unless should_skip
@@ -25,18 +23,18 @@ require 'sinatra'
 use Sentry::Rack::CaptureExceptions
 
 error RuntimeError do
-  halt 400, "this error will not be reported"
+  halt 400, 'this error will not be reported'
 end
 
-get "/handled_exception" do
-  raise "foo"
+get '/handled_exception' do
+  raise 'foo'
 end
 
-get "/" do
-  1/0
+get '/' do
+  1 / 0
 end
 
-get "/connect_trace" do
-  event = Sentry.capture_message("sentry-trace test")
+get '/connect_trace' do
+  event = Sentry.capture_message('sentry-trace test')
   event.event_id
 end

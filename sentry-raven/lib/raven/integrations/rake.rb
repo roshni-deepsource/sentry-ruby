@@ -8,9 +8,9 @@ module Rake
     def display_error_message(ex)
       Raven.capture_exception(
         ex,
-        :transaction => top_level_tasks.join(' '),
-        :logger => 'rake',
-        :tags => { 'rake_task' => top_level_tasks.join(' ') }
+        transaction: top_level_tasks.join(' '),
+        logger: 'rake',
+        tags: { 'rake_task' => top_level_tasks.join(' ') }
       )
       orig_display_error_messsage(ex)
     end

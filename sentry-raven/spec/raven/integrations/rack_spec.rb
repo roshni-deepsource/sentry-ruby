@@ -4,9 +4,9 @@ require 'raven/integrations/rack'
 RSpec.describe Raven::Rack do
   let(:exception) { build_exception }
   let(:additional_headers) { {} }
-  let(:env) { Rack::MockRequest.env_for("/test", additional_headers) }
+  let(:env) { Rack::MockRequest.env_for('/test', additional_headers) }
 
-  context "when we expect to capture an exception" do
+  context 'when we expect to capture an exception' do
     before do
       expect(Raven::Rack).to receive(:capture_exception).with(exception, env)
     end
@@ -52,7 +52,7 @@ RSpec.describe Raven::Rack do
 
   it 'sets transaction' do
     app = lambda do |_e|
-      expect(Raven.context.transaction.last).to eq "/test"
+      expect(Raven.context.transaction.last).to eq '/test'
     end
     stack = Raven::Rack.new(app)
 
@@ -81,7 +81,7 @@ RSpec.describe Raven::Rack do
 
   it 'excludes non whitelisted params from rack env' do
     interface = Raven::HttpInterface.new
-    additional_env = { "random_param" => "text", "query_string" => "test" }
+    additional_env = { 'random_param' => 'text', 'query_string' => 'test' }
     new_env = env.merge(additional_env)
     interface.from_rack(new_env)
 
@@ -89,9 +89,9 @@ RSpec.describe Raven::Rack do
   end
 
   it 'formats rack env according to the provided whitelist' do
-    Raven.configuration.rack_env_whitelist = %w(random_param query_string)
+    Raven.configuration.rack_env_whitelist = %w[random_param query_string]
     interface = Raven::HttpInterface.new
-    additional_env = { "random_param" => "text", "query_string" => "test" }
+    additional_env = { 'random_param' => 'text', 'query_string' => 'test' }
     new_env = env.merge(additional_env)
     interface.from_rack(new_env)
 
@@ -107,29 +107,31 @@ RSpec.describe Raven::Rack do
   end
 
   describe 'format headers' do
-    let(:additional_headers) { { "HTTP_VERSION" => "HTTP/1.1", "HTTP_COOKIE" => "test", "HTTP_X_REQUEST_ID" => "12345678" } }
+    let(:additional_headers) do
+      { 'HTTP_VERSION' => 'HTTP/1.1', 'HTTP_COOKIE' => 'test', 'HTTP_X_REQUEST_ID' => '12345678' }
+    end
 
     it 'transforms headers to conform with the interface' do
       interface = Raven::HttpInterface.new
       interface.from_rack(env)
 
-      expect(interface.headers).to eq("Content-Length" => "0", "Version" => "HTTP/1.1", "X-Request-Id" => "12345678")
+      expect(interface.headers).to eq('Content-Length' => '0', 'Version' => 'HTTP/1.1', 'X-Request-Id' => '12345678')
     end
 
     context 'from Rails middleware' do
-      let(:additional_headers) { { "action_dispatch.request_id" => "12345678" } }
+      let(:additional_headers) { { 'action_dispatch.request_id' => '12345678' } }
 
       it 'transforms headers to conform with the interface' do
         interface = Raven::HttpInterface.new
         interface.from_rack(env)
 
-        expect(interface.headers).to eq("Content-Length" => "0", "X-Request-Id" => "12345678")
+        expect(interface.headers).to eq('Content-Length' => '0', 'X-Request-Id' => '12345678')
       end
     end
 
     context 'with additional env variables' do
       let(:mock) { double }
-      let(:env) { { "some.variable" => mock } }
+      let(:env) { { 'some.variable' => mock } }
 
       it 'does not call #to_s for unnecessary env variables' do
         expect(mock).not_to receive(:to_s)
@@ -142,27 +144,27 @@ RSpec.describe Raven::Rack do
 
   it 'puts cookies into the cookies attribute' do
     interface = Raven::HttpInterface.new
-    new_env = env.merge("HTTP_COOKIE" => "test")
+    new_env = env.merge('HTTP_COOKIE' => 'test')
     interface.from_rack(new_env)
 
-    expect(interface.cookies).to eq("test" => nil)
+    expect(interface.cookies).to eq('test' => nil)
   end
 
   it 'does not ignore version headers which do not match SERVER_PROTOCOL' do
-    new_env = env.merge("SERVER_PROTOCOL" => "HTTP/1.1", "HTTP_VERSION" => "HTTP/2.0")
+    new_env = env.merge('SERVER_PROTOCOL' => 'HTTP/1.1', 'HTTP_VERSION' => 'HTTP/2.0')
 
     interface = Raven::HttpInterface.new
     interface.from_rack(new_env)
 
-    expect(interface.headers["Version"]).to eq("HTTP/2.0")
+    expect(interface.headers['Version']).to eq('HTTP/2.0')
   end
 
   it 'retains any literal "HTTP-" in the actual header name' do
     interface = Raven::HttpInterface.new
-    new_env = env.merge("HTTP_HTTP_CUSTOM_HTTP_HEADER" => "test")
+    new_env = env.merge('HTTP_HTTP_CUSTOM_HTTP_HEADER' => 'test')
     interface.from_rack(new_env)
 
-    expect(interface.headers).to include("Http-Custom-Http-Header" => "test")
+    expect(interface.headers).to include('Http-Custom-Http-Header' => 'test')
   end
 
   it 'does not fail if an object in the env cannot be cast to string' do
@@ -172,7 +174,7 @@ RSpec.describe Raven::Rack do
       end
     end.new
 
-    new_env = env.merge("HTTP_FOO" => "BAR", "rails_object" => obj)
+    new_env = env.merge('HTTP_FOO' => 'BAR', 'rails_object' => obj)
     interface = Raven::HttpInterface.new
 
     expect { interface.from_rack(new_env) }.to_not raise_error

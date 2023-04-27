@@ -1,4 +1,4 @@
-require "sentry/rails/instrument_payload_cleanup_helper"
+require 'sentry/rails/instrument_payload_cleanup_helper'
 
 module Sentry
   module Rails
@@ -9,7 +9,7 @@ module Sentry
 
           def add(name, started, _finished, _unique_id, data)
             # skip Rails' internal events
-            return if name.start_with?("!")
+            return if name.start_with?('!')
 
             if data.is_a?(Hash)
               # we should only mutate the copy of the data
@@ -28,9 +28,7 @@ module Sentry
           def inject
             @subscriber = ::ActiveSupport::Notifications.monotonic_subscribe(/.*/) do |name, started, finished, unique_id, data|
               # we only record events that has a float as started timestamp
-              if started.is_a?(Float)
-                add(name, started, finished, unique_id, data)
-              end
+              add(name, started, finished, unique_id, data) if started.is_a?(Float)
             end
           end
 

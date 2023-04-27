@@ -1,4 +1,4 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe Sentry::SessionFlusher do
   let(:string_io) { StringIO.new }
@@ -21,11 +21,11 @@ RSpec.describe Sentry::SessionFlusher do
     Sentry.background_worker = Sentry::BackgroundWorker.new(configuration)
   end
 
-  describe "#initialize" do
-    context "when config.release is nil" do
+  describe '#initialize' do
+    context 'when config.release is nil' do
       before { configuration.release = nil }
 
-      it "logs debug message" do
+      it 'logs debug message' do
         flusher = described_class.new(configuration, client)
 
         expect(string_io.string).to match(
@@ -35,8 +35,8 @@ RSpec.describe Sentry::SessionFlusher do
     end
   end
 
-  describe "#flush" do
-    it "early returns with no pending_aggregates" do
+  describe '#flush' do
+    it 'early returns with no pending_aggregates' do
       expect(subject.instance_variable_get(:@pending_aggregates)).to eq({})
 
       expect do
@@ -44,7 +44,7 @@ RSpec.describe Sentry::SessionFlusher do
       end.not_to change { transport.envelopes.count }
     end
 
-    context "with pending aggregates" do
+    context 'with pending aggregates' do
       let(:now) do
         time = Time.now.utc
         Time.utc(time.year, time.month, time.day, time.hour, time.min)
@@ -67,7 +67,7 @@ RSpec.describe Sentry::SessionFlusher do
         end
       end
 
-      it "captures pending_aggregates in background worker" do
+      it 'captures pending_aggregates in background worker' do
         expect do
           subject.flush
         end.to change { transport.envelopes.count }.by(1)
@@ -82,24 +82,24 @@ RSpec.describe Sentry::SessionFlusher do
     end
   end
 
-  describe "#add_session" do
+  describe '#add_session' do
     let(:session) do
       session = Sentry::Session.new
       session.close
       session
     end
 
-    context "when config.release is nil" do
+    context 'when config.release is nil' do
       before { configuration.release = nil }
 
-      it "noops" do
+      it 'noops' do
         flusher = described_class.new(configuration, client)
         flusher.add_session(session)
         expect(flusher.instance_variable_get(:@pending_aggregates)).to eq({})
       end
     end
 
-    it "spawns new thread" do
+    it 'spawns new thread' do
       expect do
         subject.add_session(session)
       end.to change { Thread.list.count }.by(1)
@@ -107,7 +107,7 @@ RSpec.describe Sentry::SessionFlusher do
       expect(subject.instance_variable_get(:@thread)).to be_a(Thread)
     end
 
-    it "spawns only one thread" do
+    it 'spawns only one thread' do
       expect do
         subject.add_session(session)
       end.to change { Thread.list.count }.by(1)
@@ -120,14 +120,14 @@ RSpec.describe Sentry::SessionFlusher do
       end.to change { Thread.list.count }.by(0)
     end
 
-    it "adds session to pending_aggregates" do
+    it 'adds session to pending_aggregates' do
       subject.add_session(session)
       pending_aggregates = subject.instance_variable_get(:@pending_aggregates)
       expect(pending_aggregates.keys.first).to be_a(Time)
       expect(pending_aggregates.values.first).to include({ errored: 0, exited: 1 })
     end
 
-    context "when thread creation fails" do
+    context 'when thread creation fails' do
       before do
         expect(Thread).to receive(:new).and_raise(ThreadError)
       end
@@ -138,23 +138,23 @@ RSpec.describe Sentry::SessionFlusher do
         end.to change { Thread.list.count }.by(0)
       end
 
-      it "noops" do
+      it 'noops' do
         subject.add_session(session)
         expect(subject.instance_variable_get(:@pending_aggregates)).to eq({})
       end
 
-      it "logs error" do
+      it 'logs error' do
         subject.add_session(session)
         expect(string_io.string).to match(/Session flusher thread creation failed/)
       end
     end
 
-    context "when killed" do
+    context 'when killed' do
       before do
         subject.kill
       end
 
-      it "noops" do
+      it 'noops' do
         subject.add_session(session)
         expect(subject.instance_variable_get(:@pending_aggregates)).to eq({})
       end
@@ -169,8 +169,8 @@ RSpec.describe Sentry::SessionFlusher do
     end
   end
 
-  describe "#kill" do
-    it "logs message when killing the thread" do
+  describe '#kill' do
+    it 'logs message when killing the thread' do
       subject.kill
       expect(string_io.string).to match(/Killing session flusher/)
     end

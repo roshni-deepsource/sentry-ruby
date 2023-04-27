@@ -1,11 +1,11 @@
-require "active_support/all"
-require "action_controller"
-require_relative "../spec/support/test_rails_app/app"
+require 'active_support/all'
+require 'action_controller'
+require_relative '../spec/support/test_rails_app/app'
 
 def app(create = false)
   @app_integration_instance = nil if create
   @app_integration_instance ||= new_session do |sess|
-    sess.host! "www.example.com"
+    sess.host! 'www.example.com'
   end
 end
 

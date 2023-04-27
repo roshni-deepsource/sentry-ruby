@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 RSpec.describe Sentry::Configuration do
-  describe "#capture_exception_frame_locals" do
-    it "passes/received the value to #include_local_variables" do
+  describe '#capture_exception_frame_locals' do
+    it 'passes/received the value to #include_local_variables' do
       subject.capture_exception_frame_locals = true
       expect(subject.include_local_variables).to eq(true)
       expect(subject.capture_exception_frame_locals).to eq(true)
@@ -12,75 +12,75 @@ RSpec.describe Sentry::Configuration do
       expect(subject.capture_exception_frame_locals).to eq(false)
     end
 
-    it "prints deprecation message when being assigned" do
+    it 'prints deprecation message when being assigned' do
       string_io = StringIO.new
       subject.logger = Logger.new(string_io)
 
       subject.capture_exception_frame_locals = true
 
       expect(string_io.string).to include(
-        "WARN -- sentry: `capture_exception_frame_locals` is now deprecated in favor of `include_local_variables`."
+        'WARN -- sentry: `capture_exception_frame_locals` is now deprecated in favor of `include_local_variables`.'
       )
     end
   end
 
-  describe "#csp_report_uri" do
-    it "returns nil if the dsn is not present" do
+  describe '#csp_report_uri' do
+    it 'returns nil if the dsn is not present' do
       expect(subject.csp_report_uri).to eq(nil)
     end
 
-    it "returns nil if the dsn is not valid" do
-      subject.dsn = "foo"
+    it 'returns nil if the dsn is not valid' do
+      subject.dsn = 'foo'
       expect(subject.csp_report_uri).to eq(nil)
     end
 
-    context "when the DSN is present" do
+    context 'when the DSN is present' do
       before do
         subject.release = nil
         subject.environment = nil
         subject.dsn = Sentry::TestHelper::DUMMY_DSN
       end
 
-      it "returns the uri" do
-        expect(subject.csp_report_uri).to eq("http://sentry.localdomain/api/42/security/?sentry_key=12345")
+      it 'returns the uri' do
+        expect(subject.csp_report_uri).to eq('http://sentry.localdomain/api/42/security/?sentry_key=12345')
       end
 
       it "adds sentry_release param when there's release information" do
-        subject.release = "test-release"
-        expect(subject.csp_report_uri).to eq("http://sentry.localdomain/api/42/security/?sentry_key=12345&sentry_release=test-release")
+        subject.release = 'test-release'
+        expect(subject.csp_report_uri).to eq('http://sentry.localdomain/api/42/security/?sentry_key=12345&sentry_release=test-release')
       end
 
       it "adds sentry_environment param when there's environment information" do
-        subject.environment = "test-environment"
-        expect(subject.csp_report_uri).to eq("http://sentry.localdomain/api/42/security/?sentry_key=12345&sentry_environment=test-environment")
+        subject.environment = 'test-environment'
+        expect(subject.csp_report_uri).to eq('http://sentry.localdomain/api/42/security/?sentry_key=12345&sentry_environment=test-environment')
       end
     end
   end
 
-  describe "#tracing_enabled?" do
-    context "when sending not allowed" do
+  describe '#tracing_enabled?' do
+    context 'when sending not allowed' do
       before do
         allow(subject).to receive(:sending_allowed?).and_return(false)
       end
 
-      context "when traces_sample_rate > 0" do
-        it "returns false" do
+      context 'when traces_sample_rate > 0' do
+        it 'returns false' do
           subject.traces_sample_rate = 0.1
 
           expect(subject.tracing_enabled?).to eq(false)
         end
       end
 
-      context "when traces_sampler is set" do
-        it "returns false" do
+      context 'when traces_sampler is set' do
+        it 'returns false' do
           subject.traces_sampler = proc { true }
 
           expect(subject.tracing_enabled?).to eq(false)
         end
       end
 
-      context "when enable_tracing is set" do
-        it "returns false" do
+      context 'when enable_tracing is set' do
+        it 'returns false' do
           subject.enable_tracing = true
 
           expect(subject.tracing_enabled?).to eq(false)
@@ -88,63 +88,63 @@ RSpec.describe Sentry::Configuration do
       end
     end
 
-    context "when sending allowed" do
+    context 'when sending allowed' do
       before do
         allow(subject).to receive(:sending_allowed?).and_return(true)
       end
 
-      it "returns false by default" do
+      it 'returns false by default' do
         expect(subject.tracing_enabled?).to eq(false)
       end
 
-      context "when traces_sample_rate > 1.0" do
-        it "returns false" do
+      context 'when traces_sample_rate > 1.0' do
+        it 'returns false' do
           subject.traces_sample_rate = 1.1
 
           expect(subject.tracing_enabled?).to eq(false)
         end
       end
 
-      context "when traces_sample_rate == 0.0" do
-        it "returns true" do
+      context 'when traces_sample_rate == 0.0' do
+        it 'returns true' do
           subject.traces_sample_rate = 0
 
           expect(subject.tracing_enabled?).to eq(true)
         end
       end
 
-      context "when traces_sample_rate > 0" do
-        it "returns true" do
+      context 'when traces_sample_rate > 0' do
+        it 'returns true' do
           subject.traces_sample_rate = 0.1
 
           expect(subject.tracing_enabled?).to eq(true)
         end
       end
 
-      context "when traces_sampler is set" do
-        it "returns true" do
+      context 'when traces_sampler is set' do
+        it 'returns true' do
           subject.traces_sampler = proc { true }
 
           expect(subject.tracing_enabled?).to eq(true)
         end
       end
 
-      context "when enable_tracing is true" do
-        it "returns true" do
+      context 'when enable_tracing is true' do
+        it 'returns true' do
           subject.enable_tracing = true
 
           expect(subject.tracing_enabled?).to eq(true)
         end
       end
 
-      context "when enable_tracing is false" do
-        it "returns false" do
+      context 'when enable_tracing is false' do
+        it 'returns false' do
           subject.enable_tracing = false
 
           expect(subject.tracing_enabled?).to eq(false)
         end
 
-        it "returns false even with explicit traces_sample_rate" do
+        it 'returns false even with explicit traces_sample_rate' do
           subject.traces_sample_rate = 1.0
           subject.enable_tracing = false
 
@@ -154,13 +154,13 @@ RSpec.describe Sentry::Configuration do
     end
   end
 
-  describe "#profiling_enabled?" do
-    it "returns false unless tracing enabled" do
+  describe '#profiling_enabled?' do
+    it 'returns false unless tracing enabled' do
       subject.enable_tracing = false
       expect(subject.profiling_enabled?).to eq(false)
     end
 
-    it "returns false unless sending enabled" do
+    it 'returns false unless sending enabled' do
       subject.enable_tracing = true
       subject.profiles_sample_rate = 1.0
       allow(subject).to receive(:sending_allowed?).and_return(false)
@@ -171,25 +171,25 @@ RSpec.describe Sentry::Configuration do
       before { subject.enable_tracing = true }
       before { allow(subject).to receive(:sending_allowed?).and_return(true) }
 
-      it "returns false if nil sample rate" do
+      it 'returns false if nil sample rate' do
         subject.profiles_sample_rate = nil
         expect(subject.profiling_enabled?).to eq(false)
       end
 
-      it "returns false if invalid sample rate" do
+      it 'returns false if invalid sample rate' do
         subject.profiles_sample_rate = 5.0
         expect(subject.profiling_enabled?).to eq(false)
       end
 
-      it "returns true if valid sample rate" do
+      it 'returns true if valid sample rate' do
         subject.profiles_sample_rate = 0.5
         expect(subject.profiling_enabled?).to eq(true)
       end
     end
   end
 
-  describe "#enable_tracing=" do
-    it "sets traces_sample_rate to 1.0 automatically" do
+  describe '#enable_tracing=' do
+    it 'sets traces_sample_rate to 1.0 automatically' do
       subject.enable_tracing = true
       expect(subject.traces_sample_rate).to eq(1.0)
     end
@@ -201,8 +201,8 @@ RSpec.describe Sentry::Configuration do
     end
   end
 
-  describe "#transport" do
-    it "returns an initialized Transport::Configuration object" do
+  describe '#transport' do
+    it 'returns an initialized Transport::Configuration object' do
       transport_config = subject.transport
       expect(transport_config.timeout).to eq(2)
       expect(transport_config.open_timeout).to eq(1)
@@ -220,25 +220,31 @@ RSpec.describe Sentry::Configuration do
   it 'raises error when setting async to anything other than callable or nil' do
     subject.async = -> {}
     subject.async = nil
-    expect { subject.async = true }.to raise_error(ArgumentError, "async must be callable (or nil to disable)")
+    expect { subject.async = true }.to raise_error(ArgumentError, 'async must be callable (or nil to disable)')
   end
 
   it 'raises error when setting before_send to anything other than callable or nil' do
     subject.before_send = -> {}
     subject.before_send = nil
-    expect { subject.before_send = true }.to raise_error(ArgumentError, "before_send must be callable (or nil to disable)")
+    expect do
+      subject.before_send = true
+    end.to raise_error(ArgumentError, 'before_send must be callable (or nil to disable)')
   end
 
   it 'raises error when setting before_send_transaction to anything other than callable or nil' do
     subject.before_send_transaction = -> {}
     subject.before_send_transaction = nil
-    expect { subject.before_send_transaction = true }.to raise_error(ArgumentError, "before_send_transaction must be callable (or nil to disable)")
+    expect do
+      subject.before_send_transaction = true
+    end.to raise_error(ArgumentError, 'before_send_transaction must be callable (or nil to disable)')
   end
 
   it 'raises error when setting before_breadcrumb to anything other than callable or nil' do
     subject.before_breadcrumb = -> {}
     subject.before_breadcrumb = nil
-    expect { subject.before_breadcrumb = true }.to raise_error(ArgumentError, "before_breadcrumb must be callable (or nil to disable)")
+    expect do
+      subject.before_breadcrumb = true
+    end.to raise_error(ArgumentError, 'before_breadcrumb must be callable (or nil to disable)')
   end
 
   context 'being initialized with a current environment' do
@@ -248,14 +254,14 @@ RSpec.describe Sentry::Configuration do
     end
 
     it 'should send events if test is whitelisted' do
-      subject.enabled_environments = %w(test)
+      subject.enabled_environments = %w[test]
       subject.sending_allowed?
       puts subject.errors
       expect(subject.sending_allowed?).to eq(true)
     end
 
     it 'should not send events if test is not whitelisted' do
-      subject.enabled_environments = %w(not_test)
+      subject.enabled_environments = %w[not_test]
       expect(subject.sending_allowed?).to eq(false)
       expect(subject.errors).to eq(["Not configured to send/capture in environment 'test'"])
     end
@@ -307,33 +313,33 @@ RSpec.describe Sentry::Configuration do
     end
   end
 
-  describe "config: backtrace_cleanup_callback" do
-    it "defaults to nil" do
+  describe 'config: backtrace_cleanup_callback' do
+    it 'defaults to nil' do
       expect(subject.backtrace_cleanup_callback).to eq(nil)
     end
 
-    it "takes a proc and store it" do
+    it 'takes a proc and store it' do
       subject.backtrace_cleanup_callback = proc {}
 
       expect(subject.backtrace_cleanup_callback).to be_a(Proc)
     end
   end
 
-  context "with an invalid server" do
+  context 'with an invalid server' do
     before(:each) do
       subject.dsn = 'dummy://trololo'
     end
 
     it 'captured_allowed returns false' do
       expect(subject.sending_allowed?).to eq(false)
-      expect(subject.errors).to eq(["DSN not set or not valid"])
+      expect(subject.errors).to eq(['DSN not set or not valid'])
     end
   end
 
-  context "with the new Sentry 9 DSN format" do
+  context 'with the new Sentry 9 DSN format' do
     # Basically the same as before, without a secret
     before(:each) do
-      subject.dsn = "https://66260460f09b5940498e24bb7ce093a0@sentry.io/42"
+      subject.dsn = 'https://66260460f09b5940498e24bb7ce093a0@sentry.io/42'
     end
 
     it 'captured_allowed is true' do
@@ -341,7 +347,7 @@ RSpec.describe Sentry::Configuration do
     end
   end
 
-  describe "#sample_allowed?" do
+  describe '#sample_allowed?' do
     before do
       subject.sample_rate = 0.75
     end
@@ -433,49 +439,49 @@ RSpec.describe Sentry::Configuration do
     it 'calls all hooks and initializes assigned variables' do
       instance = configuration.new
 
-      expect(instance.var1). to eq 1
-      expect(instance.var2). to eq 2
+      expect(instance.var1).to eq 1
+      expect(instance.var2).to eq 2
     end
   end
 
-  describe "#skip_rake_integration" do
-    it "returns false by default" do
+  describe '#skip_rake_integration' do
+    it 'returns false by default' do
       expect(subject.skip_rake_integration).to eq(false)
     end
 
-    it "accepts true" do
+    it 'accepts true' do
       subject.skip_rake_integration = true
       expect(subject.skip_rake_integration).to eq(true)
     end
   end
 
-  describe "#auto_session_tracking" do
-    it "returns true by default" do
+  describe '#auto_session_tracking' do
+    it 'returns true by default' do
       expect(subject.auto_session_tracking).to eq(true)
     end
 
-    it "accepts false" do
+    it 'accepts false' do
       subject.auto_session_tracking = false
       expect(subject.auto_session_tracking).to eq(false)
     end
   end
 
-  describe "#instrumenter" do
-    it "returns :sentry by default" do
+  describe '#instrumenter' do
+    it 'returns :sentry by default' do
       expect(subject.instrumenter).to eq(:sentry)
     end
 
-    it "can be set to :sentry" do
+    it 'can be set to :sentry' do
       subject.instrumenter = :sentry
       expect(subject.instrumenter).to eq(:sentry)
     end
 
-    it "can be set to :otel" do
+    it 'can be set to :otel' do
       subject.instrumenter = :otel
       expect(subject.instrumenter).to eq(:otel)
     end
 
-    it "defaults to :sentry if invalid" do
+    it 'defaults to :sentry if invalid' do
       subject.instrumenter = :foo
       expect(subject.instrumenter).to eq(:sentry)
     end

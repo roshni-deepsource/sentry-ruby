@@ -41,7 +41,7 @@ module Sentry
       def size_breakdown
         payload.map do |key, value|
           "#{key}: #{JSON.generate(value).bytesize}"
-        end.join(", ")
+        end.join(', ')
       end
 
       private
@@ -49,24 +49,24 @@ module Sentry
       def remove_breadcrumbs!
         if payload.key?(:breadcrumbs)
           payload.delete(:breadcrumbs)
-        elsif payload.key?("breadcrumbs")
-          payload.delete("breadcrumbs")
+        elsif payload.key?('breadcrumbs')
+          payload.delete('breadcrumbs')
         end
       end
 
       def reduce_stacktrace!
-        if exceptions = payload.dig(:exception, :values) || payload.dig("exception", "values")
-          exceptions.each do |exception|
-            # in most cases there is only one exception (2 or 3 when have multiple causes), so we won't loop through this double condition much
-            traces = exception.dig(:stacktrace, :frames) || exception.dig("stacktrace", "frames")
+        return unless (exceptions = payload.dig(:exception, :values) || payload.dig('exception', 'values'))
 
-            if traces && traces.size > STACKTRACE_FRAME_LIMIT_ON_OVERSIZED_PAYLOAD
-              size_on_both_ends = STACKTRACE_FRAME_LIMIT_ON_OVERSIZED_PAYLOAD / 2
-              traces.replace(
-                traces[0..(size_on_both_ends - 1)] + traces[-size_on_both_ends..-1],
-              )
-            end
-          end
+        exceptions.each do |exception|
+          # in most cases there is only one exception (2 or 3 when have multiple causes), so we won't loop through this double condition much
+          traces = exception.dig(:stacktrace, :frames) || exception.dig('stacktrace', 'frames')
+
+          next unless traces && traces.size > STACKTRACE_FRAME_LIMIT_ON_OVERSIZED_PAYLOAD
+
+          size_on_both_ends = STACKTRACE_FRAME_LIMIT_ON_OVERSIZED_PAYLOAD / 2
+          traces.replace(
+            traces[0..(size_on_both_ends - 1)] + traces[-size_on_both_ends..-1]
+          )
         end
       end
     end

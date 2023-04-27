@@ -1,7 +1,7 @@
-require "sentry/rails/tracing/action_controller_subscriber"
-require "sentry/rails/tracing/action_view_subscriber"
-require "sentry/rails/tracing/active_record_subscriber"
-require "sentry/rails/tracing/active_storage_subscriber"
+require 'sentry/rails/tracing/action_controller_subscriber'
+require 'sentry/rails/tracing/action_view_subscriber'
+require 'sentry/rails/tracing/active_record_subscriber'
+require 'sentry/rails/tracing/active_storage_subscriber'
 
 module Sentry
   class Configuration
@@ -16,8 +16,8 @@ module Sentry
       else
         @logger.warn(Sentry::LOGGER_PROGNAME) do
           <<~MSG
-          sentry-rails can't detect Rails.logger. it may be caused by misplacement of the SDK initialization code
-          please make sure you place the Sentry.init block under the `config/initializers` folder, e.g. `config/initializers/sentry.rb`
+            sentry-rails can't detect Rails.logger. it may be caused by misplacement of the SDK initialization code
+            please make sure you place the Sentry.init block under the `config/initializers` folder, e.g. `config/initializers/sentry.rb`
           MSG
         end
       end
@@ -79,14 +79,12 @@ module Sentry
         @register_error_subscriber = false
         @report_rescued_exceptions = true
         @skippable_job_adapters = []
-        @assets_regexp = if defined?(::Sprockets::Rails)
-          %r(\A/{0,2}#{::Rails.application.config.assets.prefix})
-        end
+        @assets_regexp = (%r(\A/{0,2}#{::Rails.application.config.assets.prefix}) if defined?(::Sprockets::Rails))
         @tracing_subscribers = Set.new([
-          Sentry::Rails::Tracing::ActionViewSubscriber,
-          Sentry::Rails::Tracing::ActiveRecordSubscriber,
-          Sentry::Rails::Tracing::ActiveStorageSubscriber
-        ])
+                                         Sentry::Rails::Tracing::ActionViewSubscriber,
+                                         Sentry::Rails::Tracing::ActiveRecordSubscriber,
+                                         Sentry::Rails::Tracing::ActiveStorageSubscriber
+                                       ])
       end
     end
   end

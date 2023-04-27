@@ -8,9 +8,9 @@ RSpec.describe Raven::Transports::HTTP do
     expect(client.send(:transport).conn.headers[:user_agent]).to eq("sentry-ruby/#{Raven::VERSION}")
   end
 
-  context "when event is not allowed (by sampling)" do
+  context 'when event is not allowed (by sampling)' do
     let(:event) do
-      JSON.generate(Raven.capture_message("test").to_hash)
+      JSON.generate(Raven.capture_message('test').to_hash)
     end
 
     before do
@@ -18,10 +18,10 @@ RSpec.describe Raven::Transports::HTTP do
       allow(Random::DEFAULT).to receive(:rand).and_return(0.6)
     end
 
-    it "logs correct message" do
-      expect(config.logger).to receive(:debug).with("Raven HTTP Transport connecting to http://sentry.localdomain/sentry")
-      expect(config.logger).to receive(:debug).with("Event not sent: Excluded by random sample")
-      client.transport.send_event("test_auth", event)
+    it 'logs correct message' do
+      expect(config.logger).to receive(:debug).with('Raven HTTP Transport connecting to http://sentry.localdomain/sentry')
+      expect(config.logger).to receive(:debug).with('Event not sent: Excluded by random sample')
+      client.transport.send_event('test_auth', event)
     end
   end
 
@@ -31,8 +31,11 @@ RSpec.describe Raven::Transports::HTTP do
     end
     client.configuration.http_adapter = [:test, stubs]
 
-    event = JSON.generate(Raven.capture_message("test").to_hash)
-    expect { client.send(:transport).send_event("test", event) }.to raise_error(Raven::Error, /the server responded with status 404/)
+    event = JSON.generate(Raven.capture_message('test').to_hash)
+    expect do
+      client.send(:transport).send_event('test',
+                                         event)
+    end.to raise_error(Raven::Error, /the server responded with status 404/)
 
     stubs.verify_stubbed_calls
   end
@@ -43,8 +46,11 @@ RSpec.describe Raven::Transports::HTTP do
     end
     client.configuration.http_adapter = [:test, stubs]
 
-    event = JSON.generate(Raven.capture_message("test").to_hash)
-    expect { client.send(:transport).send_event("test", event) }.to raise_error(Raven::Error, /the server responded with status 500/)
+    event = JSON.generate(Raven.capture_message('test').to_hash)
+    expect do
+      client.send(:transport).send_event('test',
+                                         event)
+    end.to raise_error(Raven::Error, /the server responded with status 500/)
 
     stubs.verify_stubbed_calls
   end
@@ -55,8 +61,8 @@ RSpec.describe Raven::Transports::HTTP do
     end
     client.configuration.http_adapter = [:test, stubs]
 
-    event = JSON.generate(Raven.capture_message("test").to_hash)
-    expect { client.send(:transport).send_event("test", event) }.to raise_error(Raven::Error, /error_in_header/)
+    event = JSON.generate(Raven.capture_message('test').to_hash)
+    expect { client.send(:transport).send_event('test', event) }.to raise_error(Raven::Error, /error_in_header/)
 
     stubs.verify_stubbed_calls
   end

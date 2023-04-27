@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require "securerandom"
+require 'securerandom'
 
 module Sentry
   class Span
     STATUS_MAP = {
-      400 => "invalid_argument",
-      401 => "unauthenticated",
-      403 => "permission_denied",
-      404 => "not_found",
-      409 => "already_exists",
-      429 => "resource_exhausted",
-      499 => "cancelled",
-      500 => "internal_error",
-      501 => "unimplemented",
-      503 => "unavailable",
-      504 => "deadline_exceeded"
+      400 => 'invalid_argument',
+      401 => 'unauthenticated',
+      403 => 'permission_denied',
+      404 => 'not_found',
+      409 => 'already_exists',
+      429 => 'resource_exhausted',
+      499 => 'cancelled',
+      500 => 'internal_error',
+      501 => 'unimplemented',
+      503 => 'unavailable',
+      504 => 'deadline_exceeded'
     }
 
     # An uuid that can be used to identify a trace.
@@ -74,7 +74,7 @@ module Sentry
       start_timestamp: nil,
       timestamp: nil
     )
-      @trace_id = trace_id || SecureRandom.uuid.delete("-")
+      @trace_id = trace_id || SecureRandom.uuid.delete('-')
       @span_id = span_id || SecureRandom.hex(8)
       @parent_span_id = parent_span_id
       @sampled = sampled
@@ -98,7 +98,7 @@ module Sentry
     # Generates a trace string that can be used to connect other transactions.
     # @return [String]
     def to_sentry_trace
-      sampled_flag = ""
+      sampled_flag = ''
       sampled_flag = @sampled ? 1 : 0 unless @sampled.nil?
 
       "#{@trace_id}-#{@span_id}-#{sampled_flag}"
@@ -143,13 +143,12 @@ module Sentry
     # Starts a child span with given attributes.
     # @param attributes [Hash] the attributes for the child span.
     def start_child(**attributes)
-      attributes = attributes.dup.merge(transaction: @transaction, trace_id: @trace_id, parent_span_id: @span_id, sampled: @sampled)
+      attributes = attributes.dup.merge(transaction: @transaction, trace_id: @trace_id, parent_span_id: @span_id,
+                                        sampled: @sampled)
       new_span = Span.new(**attributes)
       new_span.span_recorder = span_recorder
 
-      if span_recorder
-        span_recorder.add(new_span)
-      end
+      span_recorder.add(new_span) if span_recorder
 
       new_span
     end
@@ -163,13 +162,13 @@ module Sentry
     # @param attributes [Hash] the attributes for the child span.
     # @param block [Proc] the action to be recorded in the child span.
     # @yieldparam child_span [Span]
-    def with_child_span(**attributes, &block)
+    def with_child_span(**attributes)
       child_span = start_child(**attributes)
 
       yield(child_span)
 
       child_span.finish
-    rescue
+    rescue StandardError
       child_span.set_http_status(500)
       child_span.finish
       raise
@@ -191,7 +190,6 @@ module Sentry
       @description = description
     end
 
-
     # Sets the span's status.
     # @param satus [String] status of the span.
     def set_status(status)
@@ -208,11 +206,11 @@ module Sentry
     # @param status_code [String] example: "500".
     def set_http_status(status_code)
       status_code = status_code.to_i
-      set_data("status_code", status_code)
+      set_data('status_code', status_code)
 
       status =
         if status_code >= 200 && status_code < 299
-          "ok"
+          'ok'
         else
           STATUS_MAP[status_code]
         end

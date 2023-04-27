@@ -9,16 +9,14 @@ class WelcomeController < ApplicationController
 
   def connect_trace
     # see the sinatra example under the `sentry-ruby` folder
-    response = Net::HTTP.get_response(URI("http://localhost:4567/connect_trace"))
+    response = Net::HTTP.get_response(URI('http://localhost:4567/connect_trace'))
 
     render plain: response.code
   end
 
-  def appearance
-  end
+  def appearance; end
 
-  def view_error
-  end
+  def view_error; end
 
   def sidekiq_error
     ErrorWorker.perform_async
@@ -37,12 +35,12 @@ class WelcomeController < ApplicationController
 
   def job_error
     ErrorJob.perform_later
-    render plain: "success"
+    render plain: 'success'
   end
 
   def report_demo
     # @sentry_event_id = Raven.last_event_id
-    render(:status => 500)
+    render(status: 500)
   end
 
   private

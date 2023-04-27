@@ -1,13 +1,13 @@
-require "puma"
-require_relative "../spec_helper"
+require 'puma'
+require_relative '../spec_helper'
 
 # Because puma doesn't have any dependency, if Rack is not installed the entire test won't work
-return if ENV["RACK_VERSION"] == "0"
+return if ENV['RACK_VERSION'] == '0'
 
 RSpec.describe Puma::Server do
   class TestServer
     def initialize(app, options)
-      @host = "127.0.0.1"
+      @host = '127.0.0.1'
       @ios = []
       @server = Puma::Server.new(app, nil, options)
       @port = (@server.add_tcp_listener @host, 0).addr[1]
@@ -19,7 +19,7 @@ RSpec.describe Puma::Server do
     end
 
     def new_connection
-      TCPSocket.new(@host, @port).tap {|sock| @ios << sock}
+      TCPSocket.new(@host, @port).tap { |sock| @ios << sock }
     end
 
     def close
@@ -28,10 +28,10 @@ RSpec.describe Puma::Server do
   end
 
   let(:app) do
-    proc { raise "foo" }
+    proc { raise 'foo' }
   end
 
-  def server_run(app, lowlevel_error_handler: nil, &block)
+  def server_run(app, lowlevel_error_handler: nil)
     server = TestServer.new(app, lowlevel_error_handler: lowlevel_error_handler)
     yield server
   ensure
@@ -42,7 +42,7 @@ RSpec.describe Puma::Server do
     perform_basic_setup
   end
 
-  it "captures low-level errors" do
+  it 'captures low-level errors' do
     res = server_run(app) do |server|
       server.send_http_and_read("GET / HTTP/1.0\r\n\r\n")
     end
@@ -50,17 +50,17 @@ RSpec.describe Puma::Server do
     events = sentry_events
     expect(events.count).to eq(1)
     event = events.first
-    expect(event.exception.values.first.value).to match("foo")
+    expect(event.exception.values.first.value).to match('foo')
   end
 
-  context "when user defines lowlevel_error_handler" do
-    it "captures low-level errors" do
+  context 'when user defines lowlevel_error_handler' do
+    it 'captures low-level errors' do
       handler_executed = false
 
-      lowlevel_error_handler = ->(e, env) do
+      lowlevel_error_handler = lambda do |_e, _env|
         handler_executed = true
         # Due to the way we test Puma::Server, we won't be verify this response
-        [500, {}, ["Error is handled"]]
+        [500, {}, ['Error is handled']]
       end
 
       res = server_run(app, lowlevel_error_handler: lowlevel_error_handler) do |server|
@@ -72,13 +72,13 @@ RSpec.describe Puma::Server do
       events = sentry_events
       expect(events.count).to eq(1)
       event = events.first
-      expect(event.exception.values.first.value).to match("foo")
+      expect(event.exception.values.first.value).to match('foo')
     end
   end
 
-  context "when Sentry.capture_exception causes error" do
+  context 'when Sentry.capture_exception causes error' do
     it "doesn't affect the response" do
-      expect(Sentry).to receive(:capture_exception).and_raise("bar")
+      expect(Sentry).to receive(:capture_exception).and_raise('bar')
 
       res = server_run(app) do |server|
         server.send_http_and_read("GET / HTTP/1.0\r\n\r\n")
