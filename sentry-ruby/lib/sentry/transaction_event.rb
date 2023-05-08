@@ -3,7 +3,7 @@
 module Sentry
   # TransactionEvent represents events that carry transaction data (type: "transaction").
   class TransactionEvent < Event
-    TYPE = "transaction"
+    TYPE = 'transaction'
 
     # @return [<Array[Span]>]
     attr_accessor :spans
@@ -25,8 +25,8 @@ module Sentry
 
       self.transaction = transaction.name
       self.transaction_info = { source: transaction.source }
-      self.contexts.merge!(transaction.contexts)
-      self.contexts.merge!(trace: transaction.get_trace_context)
+      contexts.merge!(transaction.contexts)
+      contexts.merge!(trace: transaction.get_trace_context)
       self.timestamp = transaction.timestamp
       self.start_timestamp = transaction.start_timestamp
       self.tags = transaction.tags

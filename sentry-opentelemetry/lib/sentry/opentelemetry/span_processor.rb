@@ -10,7 +10,7 @@ module Sentry
       include Singleton
 
       SEMANTIC_CONVENTIONS = ::OpenTelemetry::SemanticConventions::Trace
-      INTERNAL_SPAN_KINDS = %i(client internal)
+      INTERNAL_SPAN_KINDS = %i[client internal]
 
       # The mapping from otel span ids to sentry spans
       # @return [Hash]
@@ -31,25 +31,25 @@ module Sentry
         sentry_parent_span = @span_map[trace_data.parent_span_id] if trace_data.parent_span_id
 
         sentry_span = if sentry_parent_span
-          sentry_parent_span.start_child(
-            span_id: trace_data.span_id,
-            description: otel_span.name,
-            start_timestamp: otel_span.start_timestamp / 1e9
-          )
-        else
-          options = {
-            instrumenter: :otel,
-            name: otel_span.name,
-            span_id: trace_data.span_id,
-            trace_id: trace_data.trace_id,
-            parent_span_id: trace_data.parent_span_id,
-            parent_sampled: trace_data.parent_sampled,
-            baggage: trace_data.baggage,
-            start_timestamp: otel_span.start_timestamp / 1e9
-          }
+                        sentry_parent_span.start_child(
+                          span_id: trace_data.span_id,
+                          description: otel_span.name,
+                          start_timestamp: otel_span.start_timestamp / 1e9
+                        )
+                      else
+                        options = {
+                          instrumenter: :otel,
+                          name: otel_span.name,
+                          span_id: trace_data.span_id,
+                          trace_id: trace_data.trace_id,
+                          parent_span_id: trace_data.parent_span_id,
+                          parent_sampled: trace_data.parent_sampled,
+                          baggage: trace_data.baggage,
+                          start_timestamp: otel_span.start_timestamp / 1e9
+                        }
 
-          Sentry.start_transaction(**options)
-        end
+                        Sentry.start_transaction(**options)
+                      end
 
         @span_map[trace_data.span_id] = sentry_span
       end
@@ -80,7 +80,7 @@ module Sentry
         dsn = Sentry.configuration.dsn
         return false unless dsn
 
-        if otel_span.name.start_with?("HTTP")
+        if otel_span.name.start_with?('HTTP')
           # only check client requests, connects are sometimes internal
           return false unless INTERNAL_SPAN_KINDS.include?(otel_span.kind)
 
@@ -100,7 +100,7 @@ module Sentry
         trace_data.trace_id = otel_span.context.hex_trace_id
 
         unless otel_span.parent_span_id == ::OpenTelemetry::Trace::INVALID_SPAN_ID
-          trace_data.parent_span_id = otel_span.parent_span_id.unpack1("H*")
+          trace_data.parent_span_id = otel_span.parent_span_id.unpack1('H*')
         end
 
         sentry_trace_data = parent_context[Propagator::SENTRY_TRACE_KEY]
@@ -135,7 +135,7 @@ module Sentry
           target = otel_span.attributes[SEMANTIC_CONVENTIONS::HTTP_TARGET]
           description += target if target
         elsif otel_span.attributes[SEMANTIC_CONVENTIONS::DB_SYSTEM]
-          op = "db"
+          op = 'db'
 
           statement = otel_span.attributes[SEMANTIC_CONVENTIONS::DB_STATEMENT]
           description = statement if statement
@@ -167,7 +167,7 @@ module Sentry
         update_span_status(transaction, otel_span)
         transaction.set_context(:otel, otel_context_hash(otel_span))
 
-        op, _ = parse_span_description(otel_span)
+        op, = parse_span_description(otel_span)
         transaction.set_op(op)
         transaction.set_name(otel_span.name)
       end

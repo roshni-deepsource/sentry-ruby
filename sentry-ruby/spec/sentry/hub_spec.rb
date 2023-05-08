@@ -23,8 +23,8 @@ RSpec.describe Sentry::Hub do
 
   subject { described_class.new(client, scope) }
 
-  shared_examples "capture_helper" do
-    context "with sending_allowed? condition" do
+  shared_examples 'capture_helper' do
+    context 'with sending_allowed? condition' do
       before do
         expect(configuration).to receive(:sending_allowed?).and_return(false)
       end
@@ -37,31 +37,31 @@ RSpec.describe Sentry::Hub do
       end
     end
 
-    context "with custom attributes" do
-      it "updates the event with custom attributes" do
-        subject.send(capture_helper, capture_subject, tags: { foo: "bar" })
+    context 'with custom attributes' do
+      it 'updates the event with custom attributes' do
+        subject.send(capture_helper, capture_subject, tags: { foo: 'bar' })
 
         event = transport.events.last
-        expect(event.tags).to eq({ foo: "bar" })
+        expect(event.tags).to eq({ foo: 'bar' })
       end
 
-      it "accepts custom level" do
+      it 'accepts custom level' do
         subject.send(capture_helper, capture_subject, level: :info)
 
         event = transport.events.last
         expect(event.level).to eq(:info)
       end
 
-      it "merges the contexts/tags/extrac with what the scope already has" do
+      it 'merges the contexts/tags/extrac with what the scope already has' do
         scope.set_tags(old_tag: true)
-        scope.set_contexts({ character: { name: "John", age: 25 }})
+        scope.set_contexts({ character: { name: 'John', age: 25 } })
         scope.set_extras(old_extra: true)
 
         subject.send(
           capture_helper,
           capture_subject,
           tags: { new_tag: true },
-          contexts: { another_character: { name: "Jane", age: 20 }},
+          contexts: { another_character: { name: 'Jane', age: 20 } },
           extra: { new_extra: true }
         )
 
@@ -69,26 +69,26 @@ RSpec.describe Sentry::Hub do
         expect(event.tags).to eq({ new_tag: true, old_tag: true })
         expect(event.contexts).to include(
           {
-            character: { name: "John", age: 25 },
-            another_character: { name: "Jane", age: 20 }
+            character: { name: 'John', age: 25 },
+            another_character: { name: 'Jane', age: 20 }
           }
         )
         expect(event.extra).to eq({ new_extra: true, old_extra: true })
 
         expect(scope.tags).to eq(old_tag: true)
-        expect(scope.contexts).to include({ character: { name: "John", age: 25 }})
+        expect(scope.contexts).to include({ character: { name: 'John', age: 25 } })
         expect(scope.extra).to eq(old_extra: true)
       end
     end
 
-    context "with custom scope" do
+    context 'with custom scope' do
       let(:new_scope) do
         scope = Sentry::Scope.new
         scope.set_tags({ custom_scope: true })
         scope
       end
 
-      it "accepts a custom scope" do
+      it 'accepts a custom scope' do
         subject.send(capture_helper, capture_subject, scope: new_scope)
 
         event = transport.events.last
@@ -96,7 +96,7 @@ RSpec.describe Sentry::Hub do
       end
     end
 
-    context "with a block" do
+    context 'with a block' do
       before do
         scope.set_tags({ original_scope: true })
       end
@@ -111,29 +111,29 @@ RSpec.describe Sentry::Hub do
       end
     end
 
-    context "with a hint" do
-      it "passes the hint all the way down to Client#send_event" do
+    context 'with a hint' do
+      it 'passes the hint all the way down to Client#send_event' do
         hint = nil
-        configuration.before_send = ->(event, h) { hint = h }
+        configuration.before_send = ->(_event, h) { hint = h }
 
-        subject.send(capture_helper, capture_subject, hint: {foo: "bar"})
+        subject.send(capture_helper, capture_subject, hint: { foo: 'bar' })
 
         case capture_subject
         when String
-          expect(hint).to eq({message: capture_subject, foo: "bar"})
+          expect(hint).to eq({ message: capture_subject, foo: 'bar' })
         when Exception
-          expect(hint).to eq({exception: capture_subject, foo: "bar"})
+          expect(hint).to eq({ exception: capture_subject, foo: 'bar' })
         else
-          expect(hint).to eq({foo: "bar"})
+          expect(hint).to eq({ foo: 'bar' })
         end
       end
     end
   end
 
   describe '#capture_message' do
-    let(:message) { "Test message" }
+    let(:message) { 'Test message' }
 
-    it "returns an Event instance" do
+    it 'returns an Event instance' do
       expect(subject.capture_message(message)).to be_a(Sentry::ErrorEvent)
     end
 
@@ -143,34 +143,34 @@ RSpec.describe Sentry::Hub do
       end.to change { transport.events.count }.by(1)
     end
 
-    it "takes backtrace option" do
+    it 'takes backtrace option' do
       event = subject.capture_message(message, backtrace: ["#{__FILE__}:10:in `foo'"])
       event_hash = event.to_hash
-      expect(event_hash.dig(:threads, :values, 0, :stacktrace, :frames, 0, :function)).to eq("foo")
+      expect(event_hash.dig(:threads, :values, 0, :stacktrace, :frames, 0, :function)).to eq('foo')
     end
 
-    it "raises error when passing a non-string object" do
+    it 'raises error when passing a non-string object' do
       expect do
         subject.capture_message(1)
       end.to raise_error(ArgumentError, 'expect the argument to be a String, got Integer (1)')
     end
 
-    it "assigns default backtrace with caller" do
+    it 'assigns default backtrace with caller' do
       event = subject.capture_message(message)
       event_hash = event.to_hash
-      expect(event_hash.dig(:threads, :values, 0, :stacktrace, :frames, 0, :function)).to eq("<main>")
+      expect(event_hash.dig(:threads, :values, 0, :stacktrace, :frames, 0, :function)).to eq('<main>')
     end
 
-    it_behaves_like "capture_helper" do
+    it_behaves_like 'capture_helper' do
       let(:capture_helper) { :capture_message }
       let(:capture_subject) { message }
     end
   end
 
   describe '#capture_exception' do
-    let(:exception) { ZeroDivisionError.new("divided by 0") }
+    let(:exception) { ZeroDivisionError.new('divided by 0') }
 
-    it "returns an Event instance" do
+    it 'returns an Event instance' do
       expect(subject.capture_exception(exception)).to be_a(Sentry::ErrorEvent)
     end
 
@@ -180,9 +180,9 @@ RSpec.describe Sentry::Hub do
       end.to change { transport.events.count }.by(1)
     end
 
-    it "raises error when passing a non-exception object" do
+    it 'raises error when passing a non-exception object' do
       expect do
-        subject.capture_exception("String")
+        subject.capture_exception('String')
       end.to raise_error(ArgumentError, 'expect the argument to be a Exception, got String ("String")')
     end
 
@@ -195,7 +195,7 @@ RSpec.describe Sentry::Hub do
       end.to change { transport.events.count }.by(1)
     end
 
-    it "takes ignore_exclusions hint" do
+    it 'takes ignore_exclusions hint' do
       configuration.excluded_exceptions << exception.class
 
       expect do
@@ -203,19 +203,19 @@ RSpec.describe Sentry::Hub do
       end.to change { transport.events.count }.by(1)
     end
 
-    it_behaves_like "capture_helper" do
+    it_behaves_like 'capture_helper' do
       let(:capture_helper) { :capture_exception }
       let(:capture_subject) { exception }
     end
   end
 
   describe '#capture_event' do
-    let(:exception) { ZeroDivisionError.new("divided by 0") }
+    let(:exception) { ZeroDivisionError.new('divided by 0') }
     let!(:event) do
       client.event_from_exception(exception)
     end
 
-    it "returns an Event instance" do
+    it 'returns an Event instance' do
       expect(subject.capture_event(event)).to be_a(Sentry::ErrorEvent)
     end
 
@@ -225,9 +225,9 @@ RSpec.describe Sentry::Hub do
       end.to change { transport.events.count }.by(1)
     end
 
-    it "raises error when passing a non-exception object" do
+    it 'raises error when passing a non-exception object' do
       expect do
-        subject.capture_event("String")
+        subject.capture_event('String')
       end.to raise_error(ArgumentError, 'expect the argument to be a Sentry::Event, got String ("String")')
     end
 
@@ -237,20 +237,20 @@ RSpec.describe Sentry::Hub do
       expect(string_io.string).not_to include(event.to_json_compatible.to_s)
     end
 
-    context "in debug mode" do
+    context 'in debug mode' do
       before do
         configuration.debug = true
       end
 
-      it "logs event payload" do
+      it 'logs event payload' do
         subject.capture_event(event)
 
         expect(string_io.string).to include(event.to_json_compatible.to_s)
       end
     end
 
-    context "when event is a transaction" do
-      it "transaction.set_context merges and takes precedence over scope.set_context" do
+    context 'when event is a transaction' do
+      it 'transaction.set_context merges and takes precedence over scope.set_context' do
         scope.set_context(:foo, { val: 42 })
         scope.set_context(:bar, { val: 43 })
 
@@ -262,29 +262,29 @@ RSpec.describe Sentry::Hub do
         subject.capture_event(transaction_event)
 
         event = transport.events.last
-        expect(event.contexts[:foo]). to eq({ val: 44 })
-        expect(event.contexts[:bar]). to eq({ val: 43 })
-        expect(event.contexts[:baz]). to eq({ val: 45 })
+        expect(event.contexts[:foo]).to eq({ val: 44 })
+        expect(event.contexts[:bar]).to eq({ val: 43 })
+        expect(event.contexts[:baz]).to eq({ val: 45 })
       end
     end
 
-    it_behaves_like "capture_helper" do
+    it_behaves_like 'capture_helper' do
       let(:capture_helper) { :capture_event }
       let(:capture_subject) { event }
     end
   end
 
-  describe "#with_scope" do
-    it "builds a temporary scope" do
+  describe '#with_scope' do
+    it 'builds a temporary scope' do
       inner_event = nil
       scope.set_tags({ level: 1 })
 
       subject.with_scope do |scope|
         scope.set_tags({ level: 2 })
-        inner_event = subject.capture_message("Inner event")
+        inner_event = subject.capture_message('Inner event')
       end
 
-      outter_event = subject.capture_message("Outter event")
+      outter_event = subject.capture_message('Outter event')
 
       expect(inner_event.tags).to eq({ level: 2 })
       expect(outter_event.tags).to eq({ level: 1 })
@@ -296,20 +296,20 @@ RSpec.describe Sentry::Hub do
 
       subject.with_scope do |scope|
         scope.tags[:level] = 2
-        inner_event = subject.capture_message("Inner event")
+        inner_event = subject.capture_message('Inner event')
       end
 
-      outter_event = subject.capture_message("Outter event")
+      outter_event = subject.capture_message('Outter event')
 
       expect(inner_event.tags).to eq({ level: 2 })
       expect(outter_event.tags).to eq({ level: 1 })
     end
   end
 
-  describe "#add_breadcrumb" do
+  describe '#add_breadcrumb' do
     let(:new_breadcrumb) do
       new_breadcrumb = Sentry::Breadcrumb.new
-      new_breadcrumb.message = "foo"
+      new_breadcrumb.message = 'foo'
       new_breadcrumb
     end
 
@@ -317,7 +317,7 @@ RSpec.describe Sentry::Hub do
       subject.current_scope.breadcrumbs.peek
     end
 
-    it "adds the breadcrumb to the buffer" do
+    it 'adds the breadcrumb to the buffer' do
       expect(subject.current_scope.breadcrumbs.empty?).to eq(true)
 
       subject.add_breadcrumb(new_breadcrumb)
@@ -325,7 +325,7 @@ RSpec.describe Sentry::Hub do
       expect(peek_crumb).to eq(new_breadcrumb)
     end
 
-    context "with before_breadcrumb" do
+    context 'with before_breadcrumb' do
       before do
         configuration.before_breadcrumb = lambda do |breadcrumb, hint|
           breadcrumb.message = hint[:message]
@@ -333,15 +333,15 @@ RSpec.describe Sentry::Hub do
         end
       end
 
-      it "adds the updated breadcrumb" do
-        subject.add_breadcrumb(new_breadcrumb, hint: { message: "hey!" })
+      it 'adds the updated breadcrumb' do
+        subject.add_breadcrumb(new_breadcrumb, hint: { message: 'hey!' })
 
-        expect(peek_crumb.message).to eq("hey!")
+        expect(peek_crumb.message).to eq('hey!')
       end
 
-      context "when before_breadcrumb returns nil" do
+      context 'when before_breadcrumb returns nil' do
         before do
-          configuration.before_breadcrumb = lambda do |breadcrumb, hint|
+          configuration.before_breadcrumb = lambda do |_breadcrumb, _hint|
             nil
           end
         end
@@ -354,9 +354,9 @@ RSpec.describe Sentry::Hub do
       end
     end
 
-    context "when the SDK is not activated in the current environment" do
+    context 'when the SDK is not activated in the current environment' do
       before do
-        configuration.enabled_environments = ["production"]
+        configuration.enabled_environments = ['production']
       end
 
       it "doesn't record breadcrumbs" do
@@ -367,7 +367,7 @@ RSpec.describe Sentry::Hub do
     end
   end
 
-  describe "#new_from_top" do
+  describe '#new_from_top' do
     it "initializes a different hub with current hub's top layer" do
       new_hub = subject.new_from_top
 
@@ -377,7 +377,7 @@ RSpec.describe Sentry::Hub do
     end
   end
 
-  describe "#clone" do
+  describe '#clone' do
     it "creates a new hub with the current hub's top layer" do
       new_hub = subject.clone
 
@@ -388,11 +388,11 @@ RSpec.describe Sentry::Hub do
     end
   end
 
-  describe "#bind_client & #unbind_client" do
+  describe '#bind_client & #unbind_client' do
     let(:new_client) { Sentry::Client.new(configuration) }
 
-    describe "#bind_client" do
-      it "binds the new client with the hub" do
+    describe '#bind_client' do
+      it 'binds the new client with the hub' do
         subject.bind_client(new_client)
 
         expect(subject.current_client).to eq(new_client)
@@ -408,40 +408,40 @@ RSpec.describe Sentry::Hub do
     end
   end
 
-  describe "#pop_scope" do
-    it "pops the current scope" do
+  describe '#pop_scope' do
+    it 'pops the current scope' do
       expect(subject.current_scope).to eq(scope)
       subject.pop_scope
       expect(subject.current_scope).to eq(nil)
     end
   end
 
-  describe "#push_scope" do
-    it "pushes a new scope to the scope stack" do
+  describe '#push_scope' do
+    it 'pushes a new scope to the scope stack' do
       expect(subject.current_scope).to eq(scope)
       subject.push_scope
       expect(subject.current_scope).to be_a(Sentry::Scope)
       expect(subject.current_scope).not_to eq(scope)
     end
 
-    it "clones the new scope from the current scope" do
-      scope.set_tags({ foo: "bar" })
+    it 'clones the new scope from the current scope' do
+      scope.set_tags({ foo: 'bar' })
 
       expect(subject.current_scope).to eq(scope)
 
       subject.push_scope
 
       expect(subject.current_scope).not_to eq(scope)
-      expect(subject.current_scope.tags).to eq({ foo: "bar" })
+      expect(subject.current_scope.tags).to eq({ foo: 'bar' })
     end
 
-    context "when the current_scope is nil" do
+    context 'when the current_scope is nil' do
       before do
         subject.pop_scope
         expect(subject.current_scope).to eq(nil)
       end
-      it "creates a new scope" do
-        scope.set_tags({ foo: "bar" })
+      it 'creates a new scope' do
+        scope.set_tags({ foo: 'bar' })
 
         subject.push_scope
 
@@ -452,7 +452,7 @@ RSpec.describe Sentry::Hub do
   end
 
   describe '#configure_scope' do
-    it "yields the current scope" do
+    it 'yields the current scope' do
       scope = nil
 
       subject.configure_scope { |s| scope = s }
@@ -462,19 +462,19 @@ RSpec.describe Sentry::Hub do
   end
 
   describe '#last_event_id' do
-    let(:message) { "Test message" }
+    let(:message) { 'Test message' }
 
     it 'sends the result of Event.capture_type' do
       expect(client).to receive(:send_event)
 
-      event = subject.capture_message("Test message")
+      event = subject.capture_message('Test message')
 
       expect(subject.last_event_id).to eq(event.event_id)
     end
 
     it 'only records last_event_id for error events' do
-      exception = ZeroDivisionError.new("divided by 0")
-      transaction = Sentry::Transaction.new(name: "test transaction", op: "rack.request", hub: subject)
+      exception = ZeroDivisionError.new('divided by 0')
+      transaction = Sentry::Transaction.new(name: 'test transaction', op: 'rack.request', hub: subject)
 
       error_event = client.event_from_exception(exception)
       transaction_event = client.event_from_transaction(transaction)
@@ -487,7 +487,7 @@ RSpec.describe Sentry::Hub do
     end
   end
 
-  describe "#with_background_worker_disabled" do
+  describe '#with_background_worker_disabled' do
     before do
       configuration.background_worker_threads = 5
       Sentry.background_worker = Sentry::BackgroundWorker.new(configuration)
@@ -497,35 +497,39 @@ RSpec.describe Sentry::Hub do
       end
     end
 
-    it "disables async event sending temporarily" do
+    it 'disables async event sending temporarily' do
       subject.with_background_worker_disabled do
-        subject.capture_message("foo")
+        subject.capture_message('foo')
       end
 
       expect(transport.events.count).to eq(1)
     end
 
-    it "returns the original execution result" do
+    it 'returns the original execution result' do
       result = subject.with_background_worker_disabled do
-        "foo"
+        'foo'
       end
 
-      expect(result).to eq("foo")
+      expect(result).to eq('foo')
     end
 
     it "doesn't interfere events outside of the block" do
       subject.with_background_worker_disabled {}
 
-      subject.capture_message("foo")
+      subject.capture_message('foo')
       expect(transport.events.count).to eq(0)
     end
 
-    it "resumes the backgrounding state even with exception" do
-      subject.with_background_worker_disabled do
-        raise "foo"
-      end rescue nil
+    it 'resumes the backgrounding state even with exception' do
+      begin
+        subject.with_background_worker_disabled do
+          raise 'foo'
+        end
+      rescue StandardError
+        nil
+      end
 
-      subject.capture_message("foo")
+      subject.capture_message('foo')
       expect(transport.events.count).to eq(0)
     end
   end

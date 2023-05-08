@@ -1,18 +1,18 @@
-require "bundler/inline"
+require 'bundler/inline'
 
 gemfile(true) do
   source 'https://rubygems.org'
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   ruby '> 2.6'
-  gem 'sentry-rails', path: "../../"
+  gem 'sentry-rails', path: '../../'
   gem 'railties', '~> 6.0.0'
-  gem "pry"
+  gem 'pry'
 end
 
-require "pry"
-require "action_view/railtie"
-require "action_controller/railtie"
+require 'pry'
+require 'action_view/railtie'
+require 'action_controller/railtie'
 require 'sentry-rails'
 
 Sentry.init do |config|
@@ -29,7 +29,7 @@ class TestController < ActionController::Base
   include Rails.application.routes.url_helpers
 
   def exception
-    raise "foo"
+    raise 'foo'
   end
 end
 
@@ -38,7 +38,7 @@ def app
 
   app = Class.new(TestApp) do
     def self.name
-      "RailsTestApp"
+      'RailsTestApp'
     end
   end
 
@@ -51,7 +51,7 @@ def app
   Rails.logger = app.config.logger
 
   app.routes.append do
-    get "/exception" => "test#exception"
+    get '/exception' => 'test#exception'
   end
 
   app.initialize!
@@ -60,9 +60,9 @@ def app
   app
 end
 
-require "rack/test"
+require 'rack/test'
 include Rack::Test::Methods
 
-get "/exception"
+get '/exception'
 
 sleep(2) # wait for the background_worker

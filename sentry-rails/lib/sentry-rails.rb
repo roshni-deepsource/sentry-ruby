@@ -1,2 +1,2 @@
-require "sentry/rails/version"
-require "sentry/rails"
+require 'sentry/rails/version'
+require 'sentry/rails'

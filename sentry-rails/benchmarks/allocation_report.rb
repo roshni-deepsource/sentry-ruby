@@ -1,7 +1,7 @@
 require 'benchmark/ipsa'
-require "sentry-ruby"
-require "sentry/benchmarks/benchmark_transport"
-require_relative "application"
+require 'sentry-ruby'
+require 'sentry/benchmarks/benchmark_transport'
+require_relative 'application'
 
 TestApp.configure do |config|
   config.middleware.delete ActionDispatch::DebugExceptions
@@ -14,10 +14,10 @@ app = create_app do |config|
   config.breadcrumbs_logger = [:active_support_logger]
 end
 
-app.get("/exception")
+app.get('/exception')
 
 report = MemoryProfiler.report do
-  app.get("/exception")
+  app.get('/exception')
 end
 
 report.pretty_print

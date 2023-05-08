@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "concurrent/executor/thread_pool_executor"
-require "concurrent/executor/immediate_executor"
-require "concurrent/configuration"
+require 'concurrent/executor/thread_pool_executor'
+require 'concurrent/executor/immediate_executor'
+require 'concurrent/configuration'
 
 module Sentry
   class BackgroundWorker
@@ -23,10 +23,10 @@ module Sentry
 
       @executor =
         if configuration.async
-          log_debug("config.async is set, BackgroundWorker is disabled")
+          log_debug('config.async is set, BackgroundWorker is disabled')
           Concurrent::ImmediateExecutor.new
         elsif @number_of_threads == 0
-          log_debug("config.background_worker_threads is set to 0, all events will be sent synchronously")
+          log_debug('config.background_worker_threads is set to 0, all events will be sent synchronously')
           Concurrent::ImmediateExecutor.new
         else
           log_debug("Initializing the background worker with #{@number_of_threads} threads")
@@ -50,16 +50,14 @@ module Sentry
     # if you want to monkey-patch this method, please override `_perform` instead
     def perform(&block)
       @executor.post do
-        begin
-          _perform(&block)
-        rescue Exception => e
-          log_error("exception happened in background worker", e, debug: @debug)
-        end
+        _perform(&block)
+      rescue StandardError => e
+        log_error('exception happened in background worker', e, debug: @debug)
       end
     end
 
     def shutdown
-      log_debug("Shutting down background worker")
+      log_debug('Shutting down background worker')
       @shutdown_callback&.call
     end
 

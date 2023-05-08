@@ -262,9 +262,9 @@ RSpec.describe Sentry::OpenTelemetry::SpanProcessor do
       expect(transaction.name).to eq(finished_root_span.name)
       expect(transaction.status).to eq('ok')
       expect(transaction.contexts[:otel]).to eq({
-        attributes: finished_root_span.attributes,
-        resource: finished_root_span.resource.attribute_enumerator.to_h
-      })
+                                                  attributes: finished_root_span.attributes,
+                                                  resource: finished_root_span.resource.attribute_enumerator.to_h
+                                                })
 
       expect(subject.span_map).to eq({})
     end

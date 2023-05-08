@@ -5,9 +5,9 @@ require 'spec_helper'
 
 RSpec.describe JSON do
   data = [
-    OpenStruct.new(:key => 'foo', :val => 'bar', :enc_key => '"foo"', :enc_val => '"bar"'),
-    OpenStruct.new(:key => :foo, :val => :bar, :enc_key => '"foo"', :enc_val => '"bar"'),
-    OpenStruct.new(:key => 1, :val => 1, :enc_key => '"1"', :enc_val => '1')
+    OpenStruct.new(key: 'foo', val: 'bar', enc_key: '"foo"', enc_val: '"bar"'),
+    OpenStruct.new(key: :foo, val: :bar, enc_key: '"foo"', enc_val: '"bar"'),
+    OpenStruct.new(key: 1, val: 1, enc_key: '"1"', enc_val: '1')
   ]
 
   data.each do |obj|
@@ -34,29 +34,29 @@ RSpec.describe JSON do
       1 / 0.0,
       0 / 0.0
     ]
-    expect(JSON.dump(data)).to eq "[\"symbol\",Infinity,NaN]"
+    expect(JSON.dump(data)).to eq '["symbol",Infinity,NaN]'
   end
 
   it 'resolves large numbers to Infinity' do
-    expect(JSON.parse("[123e090000000]")).to eq [+1.0 / 0.0]
+    expect(JSON.parse('[123e090000000]')).to eq [+1.0 / 0.0]
   end
 
   it 'it raises the correct error on strings that look like incomplete objects' do
-    expect { JSON.parse("{") }.to raise_error(JSON::ParserError)
-    expect { JSON.parse("[") }.to raise_error(JSON::ParserError)
+    expect { JSON.parse('{') }.to raise_error(JSON::ParserError)
+    expect { JSON.parse('[') }.to raise_error(JSON::ParserError)
   end
 
-  it "accepts any encoding which is internally valid" do
+  it 'accepts any encoding which is internally valid' do
     expect do
       JSON.parse(%({"example": "this is a utf8 or ASCII string"}))
     end.not_to raise_error
 
     expect do
-      JSON.parse(%({"example": "this is a utf8 or ASCII string"}).encode("utf-16"))
+      JSON.parse(%({"example": "this is a utf8 or ASCII string"}).encode('utf-16'))
     end.not_to raise_error
 
     expect do
-      JSON.parse(%({"example": "this is a utf8 or ASCII string"}).encode("US-ASCII"))
+      JSON.parse(%({"example": "this is a utf8 or ASCII string"}).encode('US-ASCII'))
     end.not_to raise_error
   end
 end

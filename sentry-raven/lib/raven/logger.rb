@@ -4,8 +4,8 @@ require 'logger'
 
 module Raven
   class Logger < ::Logger
-    LOG_PREFIX = "** [Raven] "
-    PROGNAME   = "sentry"
+    LOG_PREFIX = '** [Raven] '
+    PROGNAME   = 'sentry'
 
     def initialize(*)
       super

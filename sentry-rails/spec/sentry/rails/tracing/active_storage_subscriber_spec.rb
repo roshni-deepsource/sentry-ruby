@@ -1,11 +1,12 @@
-require "spec_helper"
+require 'spec_helper'
 
-RSpec.describe Sentry::Rails::Tracing::ActiveStorageSubscriber, :subscriber, type: :request, skip: Rails.version.to_f <= 5.2 do
+RSpec.describe Sentry::Rails::Tracing::ActiveStorageSubscriber, :subscriber, type: :request,
+                                                                             skip: Rails.version.to_f <= 5.2 do
   let(:transport) do
     Sentry.get_current_client.transport
   end
 
-  context "when transaction is sampled" do
+  context 'when transaction is sampled' do
     before do
       make_basic_app do |config|
         config.traces_sample_rate = 1.0
@@ -13,7 +14,7 @@ RSpec.describe Sentry::Rails::Tracing::ActiveStorageSubscriber, :subscriber, typ
       end
     end
 
-    it "records the upload event" do
+    it 'records the upload event' do
       # make sure AnalyzeJob will be executed immediately
       ActiveStorage::AnalyzeJob.queue_adapter.perform_enqueued_jobs = true
 
@@ -24,30 +25,30 @@ RSpec.describe Sentry::Rails::Tracing::ActiveStorageSubscriber, :subscriber, typ
       expect(transport.events.count).to eq(2)
 
       analysis_transaction = transport.events.first.to_hash
-      expect(analysis_transaction[:type]).to eq("transaction")
+      expect(analysis_transaction[:type]).to eq('transaction')
 
       if Rails.version.to_f > 6.1
         expect(analysis_transaction[:spans].count).to eq(2)
-        expect(analysis_transaction[:spans][0][:op]).to eq("file.service_streaming_download.active_storage")
-        expect(analysis_transaction[:spans][1][:op]).to eq("file.analyze.active_storage")
+        expect(analysis_transaction[:spans][0][:op]).to eq('file.service_streaming_download.active_storage')
+        expect(analysis_transaction[:spans][1][:op]).to eq('file.analyze.active_storage')
       else
         expect(analysis_transaction[:spans].count).to eq(1)
-        expect(analysis_transaction[:spans][0][:op]).to eq("file.service_streaming_download.active_storage")
+        expect(analysis_transaction[:spans][0][:op]).to eq('file.service_streaming_download.active_storage')
       end
 
       request_transaction = transport.events.last.to_hash
-      expect(request_transaction[:type]).to eq("transaction")
+      expect(request_transaction[:type]).to eq('transaction')
       expect(request_transaction[:spans].count).to eq(2)
 
       span = request_transaction[:spans][1]
-      expect(span[:op]).to eq("file.service_upload.active_storage")
-      expect(span[:description]).to eq("Disk")
+      expect(span[:op]).to eq('file.service_upload.active_storage')
+      expect(span[:description]).to eq('Disk')
       expect(span.dig(:data, :key)).to eq(p.cover.key)
       expect(span[:trace_id]).to eq(request_transaction.dig(:contexts, :trace, :trace_id))
     end
   end
 
-  context "when transaction is not sampled" do
+  context 'when transaction is not sampled' do
     before do
       make_basic_app
     end

@@ -24,8 +24,8 @@ module Raven
 
       instance = Raven::Instance.new(nil, config)
 
-      instance.logger.debug "Sending a test event:"
-      instance.logger.debug ""
+      instance.logger.debug 'Sending a test event:'
+      instance.logger.debug ''
 
       begin
         1 / 0
@@ -35,12 +35,12 @@ module Raven
 
       if evt
         instance.logger.debug "-> event ID: #{evt.id}"
-        instance.logger.debug ""
-        instance.logger.debug "Done!"
+        instance.logger.debug ''
+        instance.logger.debug 'Done!'
         evt
       else
-        instance.logger.debug ""
-        instance.logger.debug "An error occurred while attempting to send the event."
+        instance.logger.debug ''
+        instance.logger.debug 'An error occurred while attempting to send the event.'
         false
       end
     end

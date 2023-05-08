@@ -15,7 +15,7 @@ module Sentry
 
       def transport_class=(klass)
         unless klass.is_a?(Class)
-          raise Sentry::Error.new("config.transport.transport_class must a class. got: #{klass.class}")
+          raise Sentry::Error, "config.transport.transport_class must a class. got: #{klass.class}"
         end
 
         @transport_class = klass

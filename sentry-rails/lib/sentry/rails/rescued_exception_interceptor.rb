@@ -10,8 +10,8 @@ module Sentry
 
         begin
           @app.call(env)
-        rescue => e
-          env["sentry.rescued_exception"] = e if report_rescued_exceptions?
+        rescue StandardError => e
+          env['sentry.rescued_exception'] = e if report_rescued_exceptions?
           raise e
         end
       end

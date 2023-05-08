@@ -4,7 +4,7 @@ module Raven
     # Previously, our JSON backend required UTF-8. Since we now use the built-in
     # JSON, we can use any encoding, but it must be valid anyway so we can do
     # things like call #match and #slice on strings
-    REPLACE = "".freeze
+    REPLACE = ''.freeze
 
     def process(value)
       case value

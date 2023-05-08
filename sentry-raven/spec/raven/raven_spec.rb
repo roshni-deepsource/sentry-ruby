@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 RSpec.describe Raven do
-  let(:event) { Raven::Event.new(:id => "event_id") }
-  let(:options) { double("options") }
+  let(:event) { Raven::Event.new(id: 'event_id') }
+  let(:options) { double('options') }
 
   before do
     allow(Raven.instance).to receive(:send_event)
@@ -12,7 +12,7 @@ RSpec.describe Raven do
 
   describe '.capture' do
     context 'not given a block' do
-      let(:options) { { :key => 'value' } }
+      let(:options) { { key: 'value' } }
 
       def capture_in_separate_process
         pipe_in, pipe_out = IO.pipe
@@ -58,7 +58,7 @@ RSpec.describe Raven do
 
   describe '.inject_only' do
     before do
-      allow(Gem.loaded_specs).to receive(:keys).and_return(%w(railties rack sidekiq))
+      allow(Gem.loaded_specs).to receive(:keys).and_return(%w[railties rack sidekiq])
     end
 
     it 'loads integrations when they are valid configurations' do
@@ -94,27 +94,27 @@ RSpec.describe Raven do
     end
   end
 
-  describe "#sys_command" do
-    it "should execute system commands" do
-      expect(Raven.sys_command("echo 'Sentry'")).to eq("Sentry")
+  describe '#sys_command' do
+    it 'should execute system commands' do
+      expect(Raven.sys_command("echo 'Sentry'")).to eq('Sentry')
     end
 
     it "should return nil if a system command doesn't exist" do
-      expect(Raven.sys_command("asdasdasdsa")).to eq(nil)
+      expect(Raven.sys_command('asdasdasdsa')).to eq(nil)
     end
 
-    it "should return nil if the process exits with a non-zero exit status" do
-      expect(Raven.sys_command("uname -c")).to eq(nil) # non-existent uname option
+    it 'should return nil if the process exits with a non-zero exit status' do
+      expect(Raven.sys_command('uname -c')).to eq(nil) # non-existent uname option
     end
 
-    it "should not output to stdout on failure" do
-      expect { Raven.sys_command("asdasdasdsa") }.to_not output.to_stdout
-      expect { Raven.sys_command("uname -c") }.to_not output.to_stdout
+    it 'should not output to stdout on failure' do
+      expect { Raven.sys_command('asdasdasdsa') }.to_not output.to_stdout
+      expect { Raven.sys_command('uname -c') }.to_not output.to_stdout
     end
 
-    it "should tolerate a missing $CHILD_STATUS" do
+    it 'should tolerate a missing $CHILD_STATUS' do
       Signal.trap('CLD', 'DEFAULT')
-      expect(Raven.sys_command("echo 'Sentry'")).to eq("Sentry")
+      expect(Raven.sys_command("echo 'Sentry'")).to eq('Sentry')
     end
   end
 end

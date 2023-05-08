@@ -1,6 +1,6 @@
 module Raven
   class Processor::HTTPHeaders < Processor
-    DEFAULT_FIELDS = ["Authorization"].freeze
+    DEFAULT_FIELDS = ['Authorization'].freeze
 
     attr_accessor :sanitize_http_headers
 
@@ -11,7 +11,7 @@ module Raven
 
     def process(data)
       process_if_symbol_keys(data) if data[:request]
-      process_if_string_keys(data) if data["request"]
+      process_if_string_keys(data) if data['request']
 
       data
     end
@@ -27,10 +27,10 @@ module Raven
     end
 
     def process_if_string_keys(data)
-      return unless data["request"]["headers"]
+      return unless data['request']['headers']
 
-      data["request"]["headers"].keys.select { |k| fields_re.match(k) }.each do |k|
-        data["request"]["headers"][k] = STRING_MASK
+      data['request']['headers'].keys.select { |k| fields_re.match(k) }.each do |k|
+        data['request']['headers'][k] = STRING_MASK
       end
     end
 

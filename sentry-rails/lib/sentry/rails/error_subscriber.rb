@@ -11,6 +11,7 @@ module Sentry
 
         if source
           return if SKIP_SOURCES.match?(source)
+
           tags[:source] = source
         end
 
@@ -19,7 +20,7 @@ module Sentry
           tags.merge!(context.delete(:tags))
         end
 
-        Sentry::Rails.capture_exception(error, level: severity, contexts: { "rails.error" => context }, tags: tags)
+        Sentry::Rails.capture_exception(error, level: severity, contexts: { 'rails.error' => context }, tags: tags)
       end
     end
   end

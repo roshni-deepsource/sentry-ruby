@@ -3,11 +3,14 @@
 module Sentry
   # @api private
   class Redis
-    OP_NAME = "db.redis"
+    OP_NAME = 'db.redis'
     LOGGER_NAME = :redis_logger
 
     def initialize(commands, host, port, db)
-      @commands, @host, @port, @db = commands, host, port, db
+      @commands = commands
+      @host = host
+      @port = port
+      @db = db
     end
 
     def instrument
@@ -47,8 +50,8 @@ module Sentry
 
     def commands_description
       parsed_commands.map do |statement|
-        statement.values.join(" ").strip
-      end.join(", ")
+        statement.values.join(' ').strip
+      end.join(', ')
     end
 
     def parsed_commands
@@ -60,7 +63,7 @@ module Sentry
         if Sentry.configuration.send_default_pii
           command_set[:arguments] = arguments
                                     .select { |a| Utils::EncodingHelper.valid_utf_8?(a) }
-                                    .join(" ")
+                                    .join(' ')
         end
 
         command_set
@@ -94,7 +97,7 @@ module Sentry
 end
 
 if defined?(::Redis::Client)
-  if Gem::Version.new(::Redis::VERSION) < Gem::Version.new("5.0")
+  if Gem::Version.new(::Redis::VERSION) < Gem::Version.new('5.0')
     Sentry.register_patch(Sentry::Redis::OldClientPatch, ::Redis::Client)
   elsif defined?(RedisClient)
     RedisClient.register(Sentry::Redis::GlobalRedisInstrumentation)

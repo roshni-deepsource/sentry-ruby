@@ -24,7 +24,7 @@ module Sentry
         # we need to make sure the current thread's Hub has been set before adding breadcrumbs
         return unless Sentry.initialized? && Sentry.get_current_hub
 
-        category = "logger"
+        category = 'logger'
 
         # this is because the nature of Ruby Logger class:
         #
@@ -52,7 +52,7 @@ module Sentry
           end
         end
 
-        return if ignored_logger?(progname) || message == ""
+        return if ignored_logger?(progname) || message == ''
 
         # some loggers will add leading/trailing space as they (incorrectly, mind you)
         # think of logging as a shortcut to std{out,err}
@@ -60,17 +60,17 @@ module Sentry
 
         last_crumb = current_breadcrumbs.peek
         # try to avoid dupes from logger broadcasts
-        if last_crumb.nil? || last_crumb.message != message
-          level = Sentry::Breadcrumb::SentryLogger::LEVELS.fetch(severity, nil)
-          crumb = Sentry::Breadcrumb.new(
-            level: level,
-            category: category,
-            message: message,
-            type: severity >= 3 ? "error" : level
-          )
+        return unless last_crumb.nil? || last_crumb.message != message
 
-          Sentry.add_breadcrumb(crumb, hint: { severity: severity })
-        end
+        level = Sentry::Breadcrumb::SentryLogger::LEVELS.fetch(severity, nil)
+        crumb = Sentry::Breadcrumb.new(
+          level: level,
+          category: category,
+          message: message,
+          type: severity >= 3 ? 'error' : level
+        )
+
+        Sentry.add_breadcrumb(crumb, hint: { severity: severity })
       end
 
       private
@@ -87,4 +87,4 @@ module Sentry
   end
 end
 
-::Logger.send(:prepend, Sentry::Breadcrumb::SentryLogger)
+::Logger.prepend Sentry::Breadcrumb::SentryLogger

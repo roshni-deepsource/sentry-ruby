@@ -22,9 +22,7 @@ module Raven
   # Use a standard Raven.configure call to configure your server credentials.
   class Rack
     def self.capture_type(exception, env, options = {})
-      if env['raven.requested_at']
-        options[:time_spent] = Time.now - env['raven.requested_at']
-      end
+      options[:time_spent] = Time.now - env['raven.requested_at'] if env['raven.requested_at']
       Raven.capture_type(exception, options) do |evt|
         evt.interface :http do |int|
           int.from_rack(env)
@@ -45,7 +43,7 @@ module Raven
       # callers
       env['raven.requested_at'] = Time.now
       Raven.rack_context(env)
-      Raven.context.transaction.push(env["PATH_INFO"]) if env["PATH_INFO"]
+      Raven.context.transaction.push(env['PATH_INFO']) if env['PATH_INFO']
 
       begin
         response = @app.call(env)
@@ -98,31 +96,31 @@ module Raven
 
     def format_headers_for_sentry(env_hash)
       env_hash.each_with_object({}) do |(key, value), memo|
-        begin
-          key = key.to_s # rack env can contain symbols
-          next memo['X-Request-Id'] ||= Utils::RequestId.read_from(env_hash) if Utils::RequestId::REQUEST_ID_HEADERS.include?(key)
-          next unless key.upcase == key # Non-upper case stuff isn't either
-
-          # Rack adds in an incorrect HTTP_VERSION key, which causes downstream
-          # to think this is a Version header. Instead, this is mapped to
-          # env['SERVER_PROTOCOL']. But we don't want to ignore a valid header
-          # if the request has legitimately sent a Version header themselves.
-          # See: https://github.com/rack/rack/blob/028438f/lib/rack/handler/cgi.rb#L29
-          next if key == 'HTTP_VERSION' && value == env_hash['SERVER_PROTOCOL']
-          next if key == 'HTTP_COOKIE' # Cookies don't go here, they go somewhere else
-          next unless key.start_with?('HTTP_') || %w(CONTENT_TYPE CONTENT_LENGTH).include?(key)
-
-          # Rack stores headers as HTTP_WHAT_EVER, we need What-Ever
-          key = key.sub(/^HTTP_/, "")
-          key = key.split('_').map(&:capitalize).join('-')
-          memo[key] = value.to_s
-        rescue StandardError => e
-          # Rails adds objects to the Rack env that can sometimes raise exceptions
-          # when `to_s` is called.
-          # See: https://github.com/rails/rails/blob/master/actionpack/lib/action_dispatch/middleware/remote_ip.rb#L134
-          Raven.logger.warn("Error raised while formatting headers: #{e.message}")
-          next
+        key = key.to_s # rack env can contain symbols
+        if Utils::RequestId::REQUEST_ID_HEADERS.include?(key)
+          next memo['X-Request-Id'] ||= Utils::RequestId.read_from(env_hash)
         end
+        next unless key.upcase == key # Non-upper case stuff isn't either
+
+        # Rack adds in an incorrect HTTP_VERSION key, which causes downstream
+        # to think this is a Version header. Instead, this is mapped to
+        # env['SERVER_PROTOCOL']. But we don't want to ignore a valid header
+        # if the request has legitimately sent a Version header themselves.
+        # See: https://github.com/rack/rack/blob/028438f/lib/rack/handler/cgi.rb#L29
+        next if key == 'HTTP_VERSION' && value == env_hash['SERVER_PROTOCOL']
+        next if key == 'HTTP_COOKIE' # Cookies don't go here, they go somewhere else
+        next unless key.start_with?('HTTP_') || %w[CONTENT_TYPE CONTENT_LENGTH].include?(key)
+
+        # Rack stores headers as HTTP_WHAT_EVER, we need What-Ever
+        key = key.sub(/^HTTP_/, '')
+        key = key.split('_').map(&:capitalize).join('-')
+        memo[key] = value.to_s
+      rescue StandardError => e
+        # Rails adds objects to the Rack env that can sometimes raise exceptions
+        # when `to_s` is called.
+        # See: https://github.com/rails/rails/blob/master/actionpack/lib/action_dispatch/middleware/remote_ip.rb#L134
+        Raven.logger.warn("Error raised while formatting headers: #{e.message}")
+        next
       end
     end
 

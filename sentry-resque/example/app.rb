@@ -1,7 +1,7 @@
-require "pry"
-require "active_job"
-require "resque"
-require "sentry-resque"
+require 'pry'
+require 'active_job'
+require 'resque'
+require 'sentry-resque'
 
 Sentry.init do |config|
   config.breadcrumbs_logger = [:sentry_logger]
@@ -13,7 +13,7 @@ class MyJob < ActiveJob::Base
   self.queue_adapter = :resque
 
   def perform
-    raise "foo"
+    raise 'foo'
   end
 end
 
@@ -23,7 +23,7 @@ MyJob.perform_later
 
 begin
   worker.work(0)
-rescue => e
+rescue StandardError => e
   puts("active job failed because of \"#{e.message}\"")
 end
 
@@ -37,8 +37,6 @@ Resque::Job.create(:default, Foo)
 
 begin
   worker.work(0)
-rescue => e
+rescue StandardError => e
   puts("inline job failed because of \"#{e.message}\"")
 end
-
-
