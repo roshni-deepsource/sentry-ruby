@@ -1,5 +1,5 @@
 require 'raven/version'
-require "raven/helpers/deprecation_helper"
+require 'raven/helpers/deprecation_helper'
 require 'raven/core_ext/object/deep_dup'
 require 'raven/backtrace'
 require 'raven/breadcrumbs'
@@ -33,7 +33,7 @@ require 'forwardable'
 require 'English'
 
 module Raven
-  AVAILABLE_INTEGRATIONS = %w(delayed_job railties sidekiq rack rack-timeout rake).freeze
+  AVAILABLE_INTEGRATIONS = %w[delayed_job railties sidekiq rack rack-timeout rake].freeze
 
   class Error < StandardError
   end
@@ -73,9 +73,7 @@ module Raven
       only_integrations = only_integrations.map(&:to_s)
       integrations_to_load = Raven::AVAILABLE_INTEGRATIONS & only_integrations
       not_found_integrations = only_integrations - integrations_to_load
-      if not_found_integrations.any?
-        logger.warn "Integrations do not exist: #{not_found_integrations.join ', '}"
-      end
+      logger.warn "Integrations do not exist: #{not_found_integrations.join ', '}" if not_found_integrations.any?
       integrations_to_load &= Gem.loaded_specs.keys
       # TODO(dcramer): integrations should have some additional checks baked-in
       # or we should break them out into their own repos. Specifically both the
@@ -88,7 +86,7 @@ module Raven
 
     def load_integration(integration)
       require "raven/integrations/#{integration}"
-    rescue Exception => e
+    rescue StandardError => e
       logger.warn "Unable to load raven/integrations/#{integration}: #{e}"
     end
 
@@ -98,12 +96,16 @@ module Raven
       if opts[:to].respond_to?(:prepend, true)
         opts[:to].send(:prepend, opts[:from].const_get(module_name))
       else
-        opts[:to].send(:include, opts[:from].const_get("Old" + module_name))
+        opts[:to].send(:include, opts[:from].const_get('Old' + module_name))
       end
     end
 
     def sys_command(command)
-      result = `#{command} 2>&1` rescue nil
+      result = begin
+        `#{command} 2>&1`
+      rescue StandardError
+        nil
+      end
       return if result.nil? || result.empty? || ($CHILD_STATUS && $CHILD_STATUS.exitstatus != 0)
 
       result.strip
