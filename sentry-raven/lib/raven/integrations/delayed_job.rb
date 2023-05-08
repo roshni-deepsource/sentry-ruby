@@ -8,7 +8,7 @@ module Delayed
         lifecycle.around(:invoke_job) do |job, *args, &block|
           # Forward the call to the next callback in the callback chain
           block.call(job, *args)
-        rescue Exception => e
+        rescue StandardError => e
           # Log error to Sentry
           extra = {
             delayed_job: {

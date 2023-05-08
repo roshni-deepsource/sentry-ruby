@@ -784,7 +784,7 @@ RSpec.describe Sentry do
 
       context "when it's on heroku ci" do
         it 'returns nil' do
-          original_ci_val = ENV['CI']
+          original_ci_val = ENV.fetch('CI', nil)
           ENV['CI'] = 'true'
 
           described_class.init
@@ -796,7 +796,7 @@ RSpec.describe Sentry do
 
       context "when it's not on heroku ci" do
         around do |example|
-          original_ci_val = ENV['CI']
+          original_ci_val = ENV.fetch('CI', nil)
           ENV['CI'] = nil
 
           example.run

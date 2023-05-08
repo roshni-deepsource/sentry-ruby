@@ -51,7 +51,7 @@ module Sentry
     def perform(&block)
       @executor.post do
         _perform(&block)
-      rescue Exception => e
+      rescue StandardError => e
         log_error('exception happened in background worker', e, debug: @debug)
       end
     end

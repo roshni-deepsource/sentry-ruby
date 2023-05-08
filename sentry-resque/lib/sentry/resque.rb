@@ -31,7 +31,7 @@ module Sentry
             yield
 
             finish_transaction(transaction, 200)
-          rescue Exception => e
+          rescue StandardError => e
             ::Sentry::Resque.capture_exception(e, hint: { background: false })
             finish_transaction(transaction, 500)
             raise
