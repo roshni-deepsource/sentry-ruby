@@ -88,7 +88,7 @@ module Raven
 
     def load_integration(integration)
       require "raven/integrations/#{integration}"
-    rescue Exception => e
+    rescue StandardError => e
       logger.warn "Unable to load raven/integrations/#{integration}: #{e}"
     end
 
