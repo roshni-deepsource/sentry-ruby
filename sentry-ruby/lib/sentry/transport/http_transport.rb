@@ -166,7 +166,7 @@ module Sentry
       }.merge(@transport_configuration.ssl || {})
 
       configuration[:verify_mode] =
-configuration.delete(:verify) ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
+        configuration.delete(:verify) ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
       configuration
     end
   end

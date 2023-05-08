@@ -59,7 +59,7 @@ module Sentry
         return unless abs_path
 
         @pre_context, @context_line, @post_context = \
-            linecache.get_file_context(abs_path, lineno, context_lines)
+          linecache.get_file_context(abs_path, lineno, context_lines)
       end
 
       def to_hash(*args)
